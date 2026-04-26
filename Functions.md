@@ -39,9 +39,18 @@
 20. kevent
 	equivalent of epoll_ctl and epoll_wait for BSD OSs
 21. socket
-
+	creates a socket that can then be connected for connections with other machines
+	it takes as argument the domain which defines the "range" like ipv4, ipv6, local, etc..
+	other argument is the "type" which will for example choose between udp, tcp etc...
+	final argument is protocol which is usually kept at 0 for the default protocol. it can be for example ip, tcp, udp etc...
 22. accept
+	is a blocking call on a connection-based socket (dictated by its type on socket creation), that has been bound with bind() and is listenning for connections after a listen()
+	the second argument scokaddr is a structure that will be filled with the calling socket
+	the third argument contains the size of the socket both the second and third arguments can be null and nothing will therefore be returned through them
+	the function returns and fd refferring to the calling socket
+	if the socket is non-blocking and there is no pending connection the accept will fail and set a flag
 23. listen
+	
 24. send
 25. recv
 26. chdir
