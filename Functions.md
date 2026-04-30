@@ -50,27 +50,50 @@
 	the function returns and fd refferring to the calling socket
 	if the socket is non-blocking and there is no pending connection the accept will fail and set a flag
 23. listen
-	
+	marks the socket for accept()
 24. send
+	is just write but with socket related flags
 25. recv
+	is just like read but with socket related flags
 26. chdir
+	changes the working directory to the one specified as argument
 27. bind
+	assigns and address to a socket
 28. connect
+	connects the socket to an address (that can be outside the computer)
 29. getaddrinfo
+	returns addrinfo structures that can be used for bind and connect. It allost for host/ip search. Service argument corresponds to the port. Node argument is either a numerical network address (IPv4/IPv6) or a hostname.
 30. freeaddrinfo
+	frees the structure returned by getaddrinfo
 31. setsockopt
+	sets the option_name option to the socket at a chosen protocol level
 32. getsockname
+	returns the current adress to which the socket is bound
 33. getprotobyname
+	returns a protoent structure that matches the protocol name => deprecated, use getaddrinfo() instead
 34. fcntl
+	performs an operation on the given open file descriptor.
 35. close
+	closes a fd
 36. read
+	reads a fd
 37. write
+	writes in an fd
 38. waitpid
+	waits for a proccess id to end and returns its output
 39. kill
+	sends a signal to a process
 40. signal
+	sets up signal reception with handlers
 41. access
+	checks whether the calling process can access a path and performs accessibility checks
 42. stat
+	returns information on a file
 43. open
+	open a path and returns the fd (can create the file if not present)
 44. opendir
+	opens a directory stream
 45. readdir
+	returns a dirent structure referring to the next directory entryy in the directory stream
 46. closedir
+	closes a directory stream
