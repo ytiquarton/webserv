@@ -9,4 +9,8 @@ this project involves a server that can be accessed with:
 
 http://[IPv6_address]:port
 
-in the browser bar
+in the browser bar.
+
+For example:
+
+http://[::1]:8081/

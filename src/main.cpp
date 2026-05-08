@@ -15,31 +15,76 @@ void	add_socket_to_epoll(int socket_fd, int epoll_fd)
 	event.data.fd = socket_fd;
 	epoll_ctl(epoll_fd, EPOLL_CTL_ADD, socket_fd, &event);
 }
-
-void	log_events(epoll_event *events, int	len)
-{
-	if (!events)
-		return ;
-	log_event(events);
-	log_events(events->data->)
-}
-
 void	log_event(epoll_event	*event)
 {
 	std::cout << "Event! EPOLLIN: " << (event->events & EPOLLIN) << " EPOLLHUP: " <<  (event->events & EPOLLHUP) << std::endl;
 	std::cout << "fd: " << event->data.fd << std::endl;
 }
 
-int main()
+std::string	full_read_fd(int fd)
+{
+	char		*buffer;
+	std::string	output;
+
+	buffer = new char[4096];
+	ssize_t	len;
+	while (true)
+	{
+		len = read(fd, buffer, 4096);
+		if (len == 0)
+			break;
+		else if(len < 0)
+			if (errno == EINTR)
+				continue;
+			break;
+		output.append(buffer, static_cast<size_t>(len));
+	}
+	delete[] buffer;
+}
+
+void	handle_event(epoll_event	*event, int	mysocket, int myepoll)
+{
+	int	newsocket;
+	char *buffer;
+	ssize_t	len;
+
+	buffer = new char[1000];
+	if (event->events & EPOLLIN)
+	{
+		if (event->data.fd == mysocket)
+		{
+			newsocket = accept(mysocket, 0 ,0);
+			std::cout << "Incoming connection!" << std::endl;
+			add_socket_to_epoll(newsocket, myepoll);
+		}
+		else
+		{
+			len = read(event->data.fd, buffer, 1000);
+			std::cout << "Received : \"";
+			std::cout.write(buffer, len);
+			std::cout << "\" from fd: " << event->data.fd << std::endl;
+		}
+	}
+	else if (event->events & EPOLLHUP)
+	{
+		std::cout << "Connection closed fd: " << event->data.fd << std::endl;
+		close(event->data.fd);
+	}
+}
+
+
+int main(int argc, char **argv)
 {
 	int mysocket;
 	int	clientsocket;
 	int	myepoll;
+	int numbEvents;
 	struct addrinfo *myaddr;
 	epoll_event	*events;
 	char	*buffer = new char[1001]();
 
-	if (getaddrinfo("::1", "8081", 0, &myaddr))
+	(void)argc;
+	if (getaddrinfo("::1", argv[1], 0, &myaddr))
 		std::cout << "Error !";
 
 	mysocket = socket(AF_INET6, SOCK_STREAM, 0);
@@ -53,7 +98,9 @@ int main()
 	while (true)
 	{
 		std::cout << "Listening the socket....\n";
-		epoll_wait(myepoll, events, 1, -1);
+		numbEvents = epoll_wait(myepoll, events, 1, -1);
+		log_event(events);
+		handle_event(events, mysocket, myepoll);
 	}
 	std::cout << "Event! EPOLLIN: " << (events->events & EPOLLIN) << " EPOLLHUP: " <<  (events->events & EPOLLHUP) << std::endl;
 	std::cout << "fd: " << events->data.fd << std::endl;
