@@ -6,6 +6,10 @@
 #include <sys/epoll.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
+#include <string>
+#include "http_message.hpp"
+#include "parse_http.cpp"
 
 void	add_socket_to_epoll(int socket_fd, int epoll_fd)
 {
@@ -30,25 +34,30 @@ std::string	full_read_fd(int fd)
 	ssize_t	len;
 	while (true)
 	{
+		std::cout<< "Reading input...\n";
 		len = read(fd, buffer, 4096);
+		std::cout<< "Reading End...\n";
 		if (len == 0)
 			break;
 		else if(len < 0)
+		{
 			if (errno == EINTR)
 				continue;
 			break;
+		}
 		output.append(buffer, static_cast<size_t>(len));
 	}
+	std::cout<< "Exit...\n";
 	delete[] buffer;
+	return(output);
 }
 
 void	handle_event(epoll_event	*event, int	mysocket, int myepoll)
 {
 	int	newsocket;
-	char *buffer;
-	ssize_t	len;
+	http_message message;
+	
 
-	buffer = new char[1000];
 	if (event->events & EPOLLIN)
 	{
 		if (event->data.fd == mysocket)
@@ -59,9 +68,9 @@ void	handle_event(epoll_event	*event, int	mysocket, int myepoll)
 		}
 		else
 		{
-			len = read(event->data.fd, buffer, 1000);
+			message = parse_message(full_read_fd(event->data.fd));
 			std::cout << "Received : \"";
-			std::cout.write(buffer, len);
+			std::cout << message.content_str;
 			std::cout << "\" from fd: " << event->data.fd << std::endl;
 		}
 	}
@@ -99,6 +108,7 @@ int main(int argc, char **argv)
 	{
 		std::cout << "Listening the socket....\n";
 		numbEvents = epoll_wait(myepoll, events, 1, -1);
+		(void)numbEvents;
 		log_event(events);
 		handle_event(events, mysocket, myepoll);
 	}
