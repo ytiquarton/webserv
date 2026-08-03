@@ -1,6 +1,7 @@
 #include <string>
 #include "http_message.hpp"
 #include <iostream>
+#include <stdexcept>
 
 http_message parse_message(std::string message)
 {
@@ -12,7 +13,7 @@ http_message parse_message(std::string message)
 		std::cout<< "Header: " << output.header << "\n Content: " << content_str;
 	}catch(...)
 	{
-		throw("Wrong message format!");
+		throw(std::runtime_error("Wrong message format!"));
 	}
 	return (output);
 }
