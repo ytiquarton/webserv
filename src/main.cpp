@@ -13,6 +13,7 @@
 #include <stdexcept>
 #include "webserv.hpp"
 #include <map>
+#include <stdexcept>
 
 void	add_connection_to_epoll(int socket_fd, connection *_connection, int epoll_fd)
 {
@@ -47,6 +48,8 @@ void	read_connection(connection& _connection)
 
 	std::cout<< "Reading input...\n";
 	len = read(_connection.fd, buffer, 4096);
+	if (len<0)
+		throw(std::runtime_error("Read fail!"));
 	std::cout<< "Reading End...\n";
 	_connection.buffer.append(buffer, static_cast<size_t>(len));
 	
@@ -70,7 +73,8 @@ void	handle_event(epoll_event	*event, int	mysocket, int myepoll, std::map<int, c
 		}
 		else
 		{
-			message = parse_message(full_read_fd(static_cast<connection*>(event->data.ptr)->fd));
+			read_connection(*static_cast<connection*>(event->data.ptr));
+			message = parse_message(static_cast<connection*>(event->data.ptr)->buffer);
 			std::cout << "Received : \"";
 			std::cout << message.content_str;
 			std::cout << "\" from fd: " << static_cast<connection*>(event->data.ptr)->fd << std::endl;
