@@ -9,7 +9,6 @@
 #include <errno.h>
 #include <string>
 #include "http_message.hpp"
-#include "parse_http.cpp"
 #include <stdexcept>
 #include "webserv.hpp"
 #include <map>
@@ -73,11 +72,21 @@ void	handle_event(epoll_event	*event, int	mysocket, int myepoll, std::map<int, c
 		}
 		else
 		{
-			read_connection(*static_cast<connection*>(event->data.ptr));
-			message = parse_message(static_cast<connection*>(event->data.ptr)->buffer);
-			std::cout << "Received : \"";
-			std::cout << message.content_str;
-			std::cout << "\" from fd: " << static_cast<connection*>(event->data.ptr)->fd << std::endl;
+			while (true)
+			{
+				read_connection(*static_cast<connection*>(event->data.ptr));
+				message = http_message::parse_message(static_cast<connection*>(event->data.ptr)->buffer);
+				std::cout << "Received : \"";
+				std::cout << static_cast<connection*>(event->data.ptr)->buffer;
+				std::cout << "\" from fd: " << static_cast<connection*>(event->data.ptr)->fd << std::endl;
+				if (!message.incomplete)
+					static_cast<connection*>(event->data.ptr)->buffer = message.left_over;
+				else
+				{
+					std::cout << "Incomplete message !";
+					break;
+				}
+			}
 		}
 	}
 	else if (event->events & EPOLLHUP)
