@@ -80,7 +80,7 @@ http_message http_message::parse_message(std::string message)
 		
 	}catch(const std::exception& e)
 	{
-		if (e.what() == "No endline!")
+		if (std::string(e.what()) == std::string("No endline!"))
 			return (output);
 		throw(std::runtime_error(std::string("Wrong message format: ") + e.what()));
 	}
