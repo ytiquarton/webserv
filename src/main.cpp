@@ -38,7 +38,7 @@ void	log_event(epoll_event	*event)
 	std::cout << "fd: " << event->data.fd << std::endl;
 }
 
-void	read_connection(connection& _connection)
+void	read_connection(connection& _connection, int epoll_fd)
 {
 	char		*buffer;
 	std::string	output;
@@ -50,6 +50,8 @@ void	read_connection(connection& _connection)
 	len = read(_connection.fd, buffer, 4096);
 	if (len<0)
 		throw(std::runtime_error("Read fail!"));
+	if (len == 0)
+		epoll_ctl(epoll_fd, EPOLL_CTL_DEL, _connection.fd, NULL);
 	std::cout<< "Reading End...\n";
 	_connection.buffer.append(buffer, static_cast<size_t>(len));
 	
@@ -75,7 +77,7 @@ void	handle_event(epoll_event	*event, int	mysocket, int myepoll, std::map<int, c
 		{
 			while (true)
 			{
-				read_connection(*static_cast<connection*>(event->data.ptr));
+				read_connection(*static_cast<connection*>(event->data.ptr), myepoll);
 				message = http_message::parse_message(static_cast<connection*>(event->data.ptr)->buffer);
 				std::cout << "Received : \"";
 				std::cout << static_cast<connection*>(event->data.ptr)->buffer;
@@ -100,53 +102,39 @@ void	handle_event(epoll_event	*event, int	mysocket, int myepoll, std::map<int, c
 	}
 }
 
+void start_server(serverdata *data)
+{
+
+	data->mysocket = socket(AF_INET6, SOCK_STREAM, 0);
+	bind(data->mysocket, data->myaddr->ai_addr, data->myaddr->ai_addrlen);
+	listen(data->mysocket, 1000);
+	data->myepoll = epoll_create(10000);
+	add_socket_to_epoll(data->mysocket, data->myepoll);
+	data->events = new epoll_event();
+
+	std::cout << "My socket: " << data->mysocket << std::endl;
+}
 
 int main(int argc, char **argv)
 {
-	int mysocket;
-	int	clientsocket;
-	int	myepoll;
+	serverdata data;
 	int numbEvents;
-	struct addrinfo *myaddr;
-	epoll_event	*events;
-	char	*buffer = new char[1001]();
-	std::map<int, connection>	connections;
 
 	if (argc != 2)
 		throw(std::runtime_error("Veuillez specifier le port!\n"));
-	if (getaddrinfo("::1", argv[1], 0, &myaddr))
+	if (getaddrinfo("::1", argv[1], 0, &data.myaddr))
 		throw(std::runtime_error("Error !"));
+	start_server(&data);
+	std::cout<< "Listening at http://[::1]:"<< argv[1] <<"/\n";
 
 
 	
-	mysocket = socket(AF_INET6, SOCK_STREAM, 0);
-	bind(mysocket, myaddr->ai_addr, myaddr->ai_addrlen);
-	listen(mysocket, 1000);
-	myepoll = epoll_create(10000);
-	add_socket_to_epoll(mysocket, myepoll);
-	std::cout<< "Listening at http://[::1]:"<< argv[1] <<"/\n";
-	events = new epoll_event();
-
-	std::cout << "My socket: " << mysocket << std::endl;
 	while (true)
 	{
 		std::cout << "Listening the socket....\n";
-		numbEvents = epoll_wait(myepoll, events, 1, -1);
+		numbEvents = epoll_wait(data.myepoll, data.events, 1, -1);
 		(void)numbEvents;
-		log_event(events);
-		handle_event(events, mysocket, myepoll, connections);
+		log_event(data.events);
+		handle_event(data.events, data.mysocket, data.myepoll, data.connections);
 	}
-	std::cout << "Event! EPOLLIN: " << (events->events & EPOLLIN) << " EPOLLHUP: " <<  (events->events & EPOLLHUP) << std::endl;
-	std::cout << "fd: " << events->data.fd << std::endl;
-	clientsocket = accept(mysocket, 0, 0);
-	std::cout << "Client socket: " << clientsocket << std::endl;
-	add_socket_to_epoll(clientsocket, myepoll);
-
-	read(clientsocket, buffer, 1000);
-	std::cout << "Buffer: " << buffer << std::endl;
-	std::cout << "Listening the socket....\n";
-	epoll_wait(myepoll, events, 1, -1);
-	std::cout << "Event! EPOLLIN: " << (events->events & EPOLLIN) << " EPOLLHUP: " <<  (events->events & EPOLLHUP) << std::endl;
-	std::cout << "fd: " << events->data.fd << std::endl;
-	free (events);
 }
