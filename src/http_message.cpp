@@ -27,9 +27,23 @@ const std::map<std::string, http_message::Methods>
 
 
 
-bool	is_request(std::string start_line)
+bool	is_request(http_message &message)
 {
-	return http_message::methods_map.find(start_line.substr(0, start_line.find(" "))) != http_message::methods_map.end();
+	if (http_message::methods_map.find(message.start_line.substr(0, message.start_line.find(" "))) != http_message::methods_map.end())
+	{
+		std::string::size_type first = message.start_line.find(" ");
+		std::string::size_type second = message.start_line.find(" ", first + 1);
+		std::string::size_type third = message.start_line.find(" ", second + 1);
+
+		if (first == std::string::npos || second == std::string::npos || third != std::string::npos)
+			throw std::runtime_error("Invalid request!");
+		
+		message.method = http_message::methods_map.find(message.start_line.substr(0, first))->second;
+		message.url = message.start_line.substr(first + 1, second - first - 1);
+		message.version = message.start_line.substr(second + 1);
+		return (true);
+	}
+	return false;
 }
 
 std::string get_next_line(std::string& content)
@@ -65,7 +79,7 @@ http_message http_message::parse_message(std::string message)
 	try{
 		output.start_line = get_next_line(message);
 		
-		if (!is_request(output.start_line))
+		if (!is_request(output))
 			throw(std::runtime_error("Received http message isn't a request!"));
 		while (true)
 		{

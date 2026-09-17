@@ -6,8 +6,9 @@
 #include <sys/socket.h>
 
 
-void	sendHTMLPage(int fd)
+void	sendHTMLPage(int fd, std::string requested_page)
 {
+	(void)requested_page;
 	std::ifstream HTML_File("HTML_Example.html");
 	if (!HTML_File)
 		throw (std::runtime_error("Cannot open file!"));

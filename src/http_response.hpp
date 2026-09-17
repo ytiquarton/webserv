@@ -1,3 +1,3 @@
 #pragma once
-
-void	sendHTMLPage(int fd);
+#include <string>
+void	sendHTMLPage(int fd, std::string requested_page);

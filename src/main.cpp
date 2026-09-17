@@ -13,7 +13,7 @@
 #include "webserv.hpp"
 #include <map>
 #include <stdexcept>
-#include "http_response.hpp"
+#include "http_handler.hpp"
 
 void	add_connection_to_epoll(int socket_fd, connection *_connection, int epoll_fd)
 {
@@ -85,7 +85,7 @@ void	handle_event(epoll_event	*event, int	mysocket, int myepoll, std::map<int, c
 				if (!message.incomplete)
 				{
 					static_cast<connection*>(event->data.ptr)->buffer = message.left_over;
-					sendHTMLPage(static_cast<connection*>(event->data.ptr)->fd);
+					handle_http_message(static_cast<connection*>(event->data.ptr)->fd, message);
 				}
 				else
 				{
