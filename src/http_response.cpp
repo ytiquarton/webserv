@@ -8,7 +8,8 @@
 
 void	sendHTMLPage(int fd, std::string requested_page)
 {
-	(void)requested_page;
+
+	std::cout<< "requested url: " << requested_page << std::endl;
 	std::ifstream HTML_File("HTML_Example.html");
 	if (!HTML_File)
 		throw (std::runtime_error("Cannot open file!"));
