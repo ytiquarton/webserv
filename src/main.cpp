@@ -89,7 +89,7 @@ void	handle_event(epoll_event	*event, int	mysocket, int myepoll, std::map<int, c
 				}
 				else
 				{
-					std::cout << "Incomplete message !";
+					std::cout << "Incomplete message !\n";
 					break;
 				}
 			}

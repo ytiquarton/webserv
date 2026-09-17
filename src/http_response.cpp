@@ -6,16 +6,24 @@
 #include <sys/socket.h>
 
 
-void	sendHTMLPage(int fd, std::string requested_page)
+std::string get_HTML(std::string requested_page)
 {
-
 	std::cout<< "requested url: " << requested_page << std::endl;
 	std::ifstream HTML_File("HTML_Example.html");
 	if (!HTML_File)
 		throw (std::runtime_error("Cannot open file!"));
-
+		
 	std::ostringstream ss;
 	ss << HTML_File.rdbuf();
+	return (ss.str());
+}
+
+void	sendHTMLPage(int fd, std::string requested_page)
+{
+
+	
+	std::ostringstream ss;
+	ss << get_HTML(requested_page);
 	std::string	html_string(ss.str());
 	ss.str("");
 
