@@ -1,4 +1,4 @@
-#include "parse_config.hpp"
+#include "../include/parse_config.hpp"
 
 ParseConf::ParseConf(){}
 ParseConf::~ParseConf(){}
@@ -135,9 +135,13 @@ std::vector<server> ParseConf::parse_server(std::string conf_path){
                     } else {
                         serv_temp.setClientMaxBodySize(static_cast<size_t>(bytes));
                     }
-            }
+                }
 
+            }
         }
+        lst_serv.push_back(serv_temp);
+
+        pos = end_brace;
     }
-    
+    return lst_serv;
 }
