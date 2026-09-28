@@ -15,6 +15,20 @@
 #include <stdexcept>
 #include "http_handler.hpp"
 
+#include <csignal>
+#include <cerrno>
+#include <sys/wait.h>
+
+void reap_children(int)
+{
+	int status;
+
+	while (waitpid(-1, &status, WNOHANG) > 0)
+	{
+
+	}
+}
+
 void	add_connection_to_epoll(int socket_fd, connection *_connection, int epoll_fd)
 {
 	epoll_event	event;
@@ -104,13 +118,15 @@ void	handle_event(epoll_event	*event, int	mysocket, int myepoll, std::map<int, c
 
 void start_server(serverdata *data)
 {
-
 	data->mysocket = socket(AF_INET6, SOCK_STREAM, 0);
 	bind(data->mysocket, data->myaddr->ai_addr, data->myaddr->ai_addrlen);
 	listen(data->mysocket, 1000);
 	data->myepoll = epoll_create(10000);
 	add_socket_to_epoll(data->mysocket, data->myepoll);
 	data->events = new epoll_event();
+
+	if (signal(SIGCHLD, reap_children) == SIG_ERR)
+		throw std::runtime_error("Could not install SIGCHLD handler!");
 
 	std::cout << "My socket: " << data->mysocket << std::endl;
 }
