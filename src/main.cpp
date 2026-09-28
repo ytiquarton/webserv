@@ -131,7 +131,7 @@ void start_server(serverdata *data)
 	std::cout << "My socket: " << data->mysocket << std::endl;
 }
 
-int main(int argc, char **argv)
+int main(int argc, char **argv, char **envp)
 {
 	serverdata data;
 	int numbEvents;
