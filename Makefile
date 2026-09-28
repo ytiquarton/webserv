@@ -5,7 +5,7 @@ CXXFLAGS	= -Wall -Wextra -Werror -std=c++98
 RM			= rm -f
 
 SRCS		= $(addprefix src/, main.cpp http_message.cpp string_utils.cpp http_response.cpp http_handler.cpp)
-HEADERS		= 
+HEADERS		= -Iinclude
 OBJS		= $(patsubst src/%.cpp,obj/%.o,$(SRCS))
 
 all: $(NAME)
