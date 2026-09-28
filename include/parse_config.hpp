@@ -63,6 +63,8 @@ class Route {
         std::string getCgiDir() const {return (this->_cgi_dir);}
 };
 
+
+
 class Server {
     private :
         int         _port;
@@ -122,10 +124,10 @@ class Server {
             this->_lst_routes[path] = c_route;
         }
 
-        Server parse_server(std::string conf_path);
 
 
 };
 
+Server parse_server(std::string conf_path);
 
 #endif

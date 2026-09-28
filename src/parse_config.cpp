@@ -58,7 +58,7 @@ Route parse_route(std::string route, std::string block_route){
 
 
 
-Server Server::parse_server(std::string conf_path){
+Server parse_server(std::string conf_path){
     Server serv;
     std::ifstream conf_file(conf_path);
 
