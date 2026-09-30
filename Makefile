@@ -1,11 +1,11 @@
 NAME		= webserv
 
 CXX			= c++
-CXXFLAGS	= -Wall -Wextra -Werror -std=c++98
+CXXFLAGS	= -Wall -Wextra -Werror -std=c++98 -g
 RM			= rm -f
 
-SRCS		= $(addprefix src/, main.cpp http_message.cpp string_utils.cpp http_response.cpp http_handler.cpp)
-HEADERS		= -Iinclude
+SRCS		= $(addprefix src/, cgi_handler.cpp epoll_utils.cpp http_handler.cpp http_message.cpp http_response.cpp main.cpp parse_config.cpp server.cpp string_utils.cpp)
+HEADERS		= include
 OBJS		= $(patsubst src/%.cpp,obj/%.o,$(SRCS))
 
 all: $(NAME)
@@ -15,7 +15,7 @@ $(NAME): $(OBJS) $(HEADERS)
 
 obj/%.o: src/%.cpp
 	mkdir -p obj
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -I$(HEADERS) -c $< -o $@
 	
 
 clean:

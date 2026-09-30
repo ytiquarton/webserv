@@ -1,14 +1,11 @@
 #pragma once
+#include "parse_config.hpp"
+#include "epoll_utils.hpp"
 
-#include <string>
-#include <netdb.h>
-
-struct serverdata
+class Server
 {
-	int mysocket;
-	int	clientsocket;
-	int	myepoll;
-	struct addrinfo *myaddr;
-	epoll_event	*events;
-	std::map<int, connection>	connections;
+	public:
+	ServerConfig config;
+	ServerEpoll epoll;
+	char **envp;
 };

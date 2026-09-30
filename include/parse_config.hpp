@@ -65,7 +65,7 @@ class Route {
 
 
 
-class Server {
+class ServerConfig {
     private :
         int         _port;
         std::string _server_name;
@@ -74,7 +74,7 @@ class Server {
         std::map<std::string, Route> _lst_routes;
 
     public :
-        Server() : _port(0), _server_name(""), _max_size(1048576) {}
+        ServerConfig() : _port(8080), _server_name(""), _max_size(1048576) {}
 
         void setPort(int p) {this->_port = p;}
         void setServerName(const std::string& name) {this->_server_name = name;}
@@ -128,6 +128,6 @@ class Server {
 
 };
 
-Server parse_server(std::string conf_path);
+ServerConfig parse_server(std::string conf_path);
 
 #endif

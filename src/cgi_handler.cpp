@@ -2,8 +2,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdexcept>
+#include <vector>
 
-void	start_CGI(std::string path, std::string message_body, int fd, char* envp)
+void	start_CGI(std::string path, std::string message_body, int fd)
 {
 	int	pipe_fds[2];
 	if (pipe(pipe_fds) == -1)
@@ -17,7 +18,7 @@ void	start_CGI(std::string path, std::string message_body, int fd, char* envp)
 	}
 	if (p > 0)
 	{
-		int index(0);
+		unsigned int index(0);
 		close(pipe_fds[0]);
 		while (index < message_body.size())
 		{
@@ -31,6 +32,11 @@ void	start_CGI(std::string path, std::string message_body, int fd, char* envp)
 		throw(std::runtime_error("CGI child fail!"));
 	close(pipe_fds[0]);
 	close(fd);
-	execve(path.c_str(), 0, 0);
+
+	std::vector<char *> argv;
+	argv.push_back((char *)path.c_str());
+	argv.push_back(0);
+
+	execve(path.c_str(), &argv[0], 0);
 	throw(std::runtime_error("CGI child fail!"));
 }

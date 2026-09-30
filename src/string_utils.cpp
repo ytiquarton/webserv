@@ -1,5 +1,6 @@
 #include <string>
 #include <cctype>
+#include <sstream>
 
 std::string	to_lower(const std::string s)
 {
@@ -22,4 +23,11 @@ std::string	trim(const std::string s)
 		return ("");
 	output = s.substr(start, end-start + 1);
 	return (output);
+}
+
+std::string int_to_string(int nb)
+{
+	std::ostringstream ss;
+	ss << nb;
+	return ss.str();
 }

@@ -6,15 +6,30 @@
 #include "http_handler.hpp"
 #include <sys/socket.h>
 #include "webserv.hpp"
+#include "string_utils.hpp"
 
-void start_epoll(serverdata *data)
+void	add_socket_to_epoll(int socket_fd, int epoll_fd)
 {
-	data->mysocket = socket(AF_INET6, SOCK_STREAM, 0);
-	bind(data->mysocket, data->myaddr->ai_addr, data->myaddr->ai_addrlen);
-	listen(data->mysocket, 1000);
-	data->myepoll = epoll_create(10000);
-	add_socket_to_epoll(data->mysocket, data->myepoll);
-	data->events = new epoll_event();
+	epoll_event	event;
+
+	event.events = EPOLLIN | EPOLLRDHUP;
+	event.data.fd = socket_fd;
+	epoll_ctl(epoll_fd, EPOLL_CTL_ADD, socket_fd, &event);
+}
+
+void start_epoll(Server& server)
+{
+	std::cout << " Starting epoll... " << std::endl;
+	ServerEpoll& epoll_data = server.epoll;
+	std::cout << " Port : " << server.config.getPort() << std::endl;
+	if (getaddrinfo("::1", int_to_string(server.config.getPort()).c_str(), 0, &server.epoll.myaddr))
+		throw(std::runtime_error("Address error !"));
+	epoll_data.mysocket = socket(AF_INET6, SOCK_STREAM, 0);
+	bind(epoll_data.mysocket, epoll_data.myaddr->ai_addr, epoll_data.myaddr->ai_addrlen);
+	listen(epoll_data.mysocket, 1000);
+	epoll_data.myepoll = epoll_create(10000);
+	add_socket_to_epoll(epoll_data.mysocket, epoll_data.myepoll);
+	epoll_data.events = new epoll_event();
 }
 
 void	add_connection_to_epoll(int socket_fd, connection *_connection, int epoll_fd)
@@ -26,14 +41,6 @@ void	add_connection_to_epoll(int socket_fd, connection *_connection, int epoll_f
 	epoll_ctl(epoll_fd, EPOLL_CTL_ADD, socket_fd, &event);
 }
 
-void	add_socket_to_epoll(int socket_fd, int epoll_fd)
-{
-	epoll_event	event;
-
-	event.events = EPOLLIN | EPOLLRDHUP;
-	event.data.fd = socket_fd;
-	epoll_ctl(epoll_fd, EPOLL_CTL_ADD, socket_fd, &event);
-}
 void	log_event(epoll_event	*event)
 {
 	std::cout << "Event! EPOLLIN: " << (event->events & EPOLLIN) << " EPOLLHUP: " <<  (event->events & EPOLLHUP) << std::endl;
@@ -104,13 +111,13 @@ void	handle_event(epoll_event	*event, int	mysocket, int myepoll, std::map<int, c
 	}
 }
 
-void epoll_handle(serverdata *data)
+void epoll_handle(ServerEpoll& data)
 {
 	int numbEvents;
 
 	std::cout << "Listening the socket....\n";
-	numbEvents = epoll_wait(data->myepoll, data->events, 1, -1);
-	(void)numbEvents;
-	log_event(data->events);
-	handle_event(data->events, data->mysocket, data->myepoll, data->connections);
+	numbEvents = epoll_wait(data.myepoll, data.events, 1, -1);
+	std::cout << "Numb of events: " << numbEvents << std::endl;
+	log_event(data.events);
+	handle_event(data.events, data.mysocket, data.myepoll, data.connections);
 }

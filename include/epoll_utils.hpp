@@ -1,5 +1,10 @@
 #pragma once
 #include <string>
+#include <netdb.h>
+#include <sys/epoll.h>
+#include <map>
+
+class Server;
 
 class connection
 {
@@ -8,5 +13,16 @@ class connection
 	int			fd;
 };
 
-void epoll_handle(serverdata *data);
-void start_epoll(serverdata *data);
+struct ServerEpoll
+{
+	int mysocket;
+	int	clientsocket;
+	int	myepoll;
+	struct addrinfo *myaddr;
+	epoll_event	*events;
+	std::map<int, connection>	connections;
+};
+
+
+void epoll_handle(ServerEpoll& data);
+void start_epoll(Server& data);

@@ -3,12 +3,13 @@
 
 void	create_file(std::string path, std::string content)
 {
-
+	(void)path;
+	(void)content;
 }
 
 void	delete_file(std::string path)
 {
-
+	(void)path;
 }
 
 void	handle_http_message(int fd, http_message message)
