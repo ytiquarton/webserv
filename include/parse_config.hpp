@@ -8,10 +8,15 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <exception>
+
+class Route;
+class Server;
 
 class Route {
     private :
         std::string _route_path;
+        std::pair<int, std::string> _redir; // redirection 
         std::string _allow_methods;
         std::string _root;
         bool _autoindex; //
@@ -21,14 +26,22 @@ class Route {
         std::string _cgi_dir;
 
     public :
-        Route() : _route_path(""), _allow_methods(""), _root(""), _autoindex(false), _index(""){}
+        Route() : _route_path(""), _redir(0, ""), _allow_methods(""), _root(""), _autoindex(false), _index(""){}
 
         // _route_path
         void setRoutePath(const std::string& path) {this->_route_path = path;}
         std::string getRoutePath() const {return (this->_route_path);}
 
-        // _allow_methods
+        // _redir
 
+        void setRedir(int code, const std::string& path) {
+            this->_redir.first = code;
+            this->_redir.second = path;
+        }
+        std::pair<int, std::string> getRedir() const {return this->_redir;}
+        std::string getRedirPath() const {return this->_redir.second;}
+
+        // _allow_methods
         void setAllowMethods(const std::string& a_m) {this->_allow_methods = a_m;}
         std::string getAllowMethods() const {return (this->_allow_methods);}
 
@@ -118,14 +131,16 @@ class Server {
             return error_route;
         }
 
-        void setRoute(std::string& path, Route& c_route){
+        void setRoute(const std::string& path, const Route& c_route){
             this->_lst_routes[path] = c_route;
         }
 
-        Server parse_server(std::string conf_path);
-
-
 };
+
+Route parse_route(std::string route, std::string block_route);
+Server parse_server(std::string conf_path);
+std::string return_path_routed(std::string path);
+
 
 
 #endif
