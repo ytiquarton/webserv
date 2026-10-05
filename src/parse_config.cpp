@@ -11,11 +11,13 @@ static std::string trim(const std::string& str) {
     return str.substr(first, (last - first + 1));
 }
 
+
 Route parse_route(std::string route, std::string block_route){
 	(void)route;
     std::string line;
     std::stringstream route_stream(block_route);
     Route route_ret;
+    route_ret.setRoutePath(route);
     while (std::getline(route_stream, line)){
         line = trim(line);
         if (line.empty() || line[0] == '#')
@@ -35,22 +37,23 @@ Route parse_route(std::string route, std::string block_route){
             std::string _cgi_pass;
             std::string _cgi_dir;
             */
-            if (key == "route_path") {
-                route_ret.setRoutePath(val);
-            } else if (key == "allow_methods") {
+            if (key == "allow_methods") {
                 route_ret.setAllowMethods(val);
             } else if (key == "root") {
                 route_ret.setRoot(val);
             } else if (key == "autoindex") {
-                if (val == "on")
+                if (val == "on" || val == "true" || val == "1")
                     route_ret.setAutoindex(true);
             } else if (key == "index") {
                 route_ret.setIndex(val);
             } else if (key == "upload_store") {
                 route_ret.setUploadStore(val);
             } else if (key == "cgi_pass") {
+                if (val.compare(0, 3, ".py") != 0)
+                    throw std::runtime_error("Wrong file format for cgi_pass");
                 route_ret.setCgiPass(val);
             } else if (key == "cgi_dir") {
+                
                 route_ret.setCgiDir(val);
             }
         }
@@ -60,9 +63,9 @@ Route parse_route(std::string route, std::string block_route){
 
 
 
-ServerConfig parse_server(std::string conf_path){
-    ServerConfig serv;
-    std::ifstream conf_file(conf_path.c_str());
+Server parse_server(std::string conf_path){
+    Server serv;
+    std::ifstream conf_file(conf_path);
 
     if (!conf_file.is_open()) {
         std::cerr << "Couldn't open config file" << std::endl;
