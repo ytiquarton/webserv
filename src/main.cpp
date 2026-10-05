@@ -22,11 +22,8 @@ void reap_children(int)
 
 void start_server(Server& server)
 {
-	std::cout << "test 1" << std::endl;
 	server.config =  parse_server("config.conf");
-	std::cout << "test 2" << std::endl;
 	start_epoll(server);
-	std::cout << "test 3" << std::endl;
 	if (signal(SIGCHLD, reap_children) == SIG_ERR)
 		throw std::runtime_error("Could not install SIGCHLD handler!");
 
