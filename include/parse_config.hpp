@@ -11,7 +11,7 @@
 #include <exception>
 
 class Route;
-class Server;
+class ServerConfig;
 
 class Route {
     private :
@@ -140,7 +140,7 @@ class ServerConfig {
 };
 
 Route parse_route(std::string route, std::string block_route);
-Server parse_server(std::string conf_path);
+ServerConfig parse_server(std::string conf_path);
 std::string return_path_routed(std::string path);
 
 

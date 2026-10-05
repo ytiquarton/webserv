@@ -1,6 +1,7 @@
 #include "parse_config.hpp"
 #include <fstream>
 #include <cstdlib>
+#include <iostream>
 
 //fonction pour enlever les espaces premier et derniers espaces
 static std::string trim(const std::string& str) {
@@ -63,9 +64,9 @@ Route parse_route(std::string route, std::string block_route){
 
 
 
-Server parse_server(std::string conf_path){
-    Server serv;
-    std::ifstream conf_file(conf_path);
+ServerConfig parse_server(std::string conf_path){
+    ServerConfig serv;
+    std::ifstream conf_file(conf_path.c_str());
 
     if (!conf_file.is_open()) {
         std::cerr << "Couldn't open config file" << std::endl;

@@ -4,12 +4,19 @@
 #include <string>
 #include <stdexcept>
 #include <sys/socket.h>
+#include "utils.hpp"
+#include "webserv.hpp"
+#include "parse_config.hpp"
 
 
-std::string get_HTML(std::string requested_page)
+std::string get_HTML(std::string requested_page, Server& serv)
 {
 	std::cout<< "requested url: " << requested_page << std::endl;
-	std::ifstream HTML_File("server_files/HTML_Example.html");
+
+    Route rte = serv.config.getOneRoute(requested_page);
+	if (rte.getAllowMethods().find("GET") == std::string::npos)
+		throw (std::runtime_error("Invalid request!"));
+	std::ifstream HTML_File(return_path_routed(requested_page, serv.config).c_str());
 	if (!HTML_File)
 		throw (std::runtime_error("Cannot open file!"));
 		
@@ -35,9 +42,9 @@ void	sendHTML(std::string str, int fd)
 	}
 }
 
-void	sendHTMLPage(int fd, std::string requested_page)
+void	sendHTMLPage(int fd, std::string requested_page, Server& serv)
 {
-	std::string	html_string(get_HTML(requested_page));
+	std::string	html_string(get_HTML(requested_page, serv));
 
 	std::ostringstream ss;
 	ss << "HTTP/1.1 200 OK\r\n";

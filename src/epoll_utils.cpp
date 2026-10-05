@@ -67,7 +67,7 @@ void	read_connection(connection& _connection, int epoll_fd)
 	delete[] buffer;
 }
 
-void	handle_event(epoll_event	*event, int	mysocket, int myepoll, std::map<int, connection>& connections)
+void	handle_event(epoll_event	*event, int	mysocket, int myepoll, std::map<int, connection>& connections, Server& serv)
 {
 	int	newsocket;
 	http_message message;
@@ -94,7 +94,7 @@ void	handle_event(epoll_event	*event, int	mysocket, int myepoll, std::map<int, c
 				if (!message.incomplete)
 				{
 					static_cast<connection*>(event->data.ptr)->buffer = message.left_over;
-					handle_http_message(static_cast<connection*>(event->data.ptr)->fd, message);
+					handle_http_message(static_cast<connection*>(event->data.ptr)->fd, message, serv);
 				}
 				else
 				{
@@ -111,7 +111,7 @@ void	handle_event(epoll_event	*event, int	mysocket, int myepoll, std::map<int, c
 	}
 }
 
-void epoll_handle(ServerEpoll& data)
+void epoll_handle(ServerEpoll& data, Server& serv)
 {
 	int numbEvents;
 
@@ -119,5 +119,5 @@ void epoll_handle(ServerEpoll& data)
 	numbEvents = epoll_wait(data.myepoll, data.events, 1, -1);
 	std::cout << "Numb of events: " << numbEvents << std::endl;
 	log_event(data.events);
-	handle_event(data.events, data.mysocket, data.myepoll, data.connections);
+	handle_event(data.events, data.mysocket, data.myepoll, data.connections, serv);
 }

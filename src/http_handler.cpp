@@ -12,11 +12,11 @@ void	delete_file(std::string path)
 	(void)path;
 }
 
-void	handle_http_message(int fd, http_message message)
+void	handle_http_message(int fd, http_message message, Server& serv)
 {
 	if (message.method == http_message::GET)
 	{
-		sendHTMLPage(fd, message.url);
+		sendHTMLPage(fd, message.url, serv);
 		return;
 	}
 	else if (message.method == http_message::POST)

@@ -20,9 +20,9 @@ void reap_children(int)
 
 
 
-void start_server(Server& server)
+void start_server(Server& server, std::string confpath)
 {
-	server.config =  parse_server("config.conf");
+	server.config =  parse_server(confpath);
 	start_epoll(server);
 	if (signal(SIGCHLD, reap_children) == SIG_ERR)
 		throw std::runtime_error("Could not install SIGCHLD handler!");
@@ -37,12 +37,14 @@ int main(int argc, char **argv, char **envp)
 	Server	server;
 
 	server.envp = envp;
-	start_server(server);
+	if (argc > 1)
+		start_server(server, argv[1]);
+	start_server(server, "config.conf");
 	std::cout<< "Listening at http://[::1]:"<< server.config.getPort() <<"/\n";
 
 
 	while (true)
 	{
-		epoll_handle(server.epoll);
+		epoll_handle(server.epoll, server);
 	}
 }

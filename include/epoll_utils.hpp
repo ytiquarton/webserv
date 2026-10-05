@@ -24,5 +24,5 @@ struct ServerEpoll
 };
 
 
-void epoll_handle(ServerEpoll& data);
+void epoll_handle(ServerEpoll& data, Server& serv);
 void start_epoll(Server& data);
