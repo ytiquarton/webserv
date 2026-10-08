@@ -21,9 +21,10 @@ class Route {
         std::string _root;
         bool _autoindex; //
         std::string _index;
-        std::string _upload_store;
-        std::string _cgi_pass;
-        std::string _cgi_dir;
+        // std::string _upload_store;
+        // std::string _cgi_pass;
+        // std::string _cgi_dir;
+        bool _cgi;
 
     public :
         Route() : _route_path(""), _redir(0, ""), _allow_methods(""), _root(""), _autoindex(false), _index(""){}
@@ -60,20 +61,24 @@ class Route {
         void setIndex(const std::string& ix) {this->_index = ix;}
         std::string getIndex() const {return (this->_index);}
 
-        // _upload_store
+        // // _upload_store
 
-        void setUploadStore(const std::string& u_s) {this->_upload_store = u_s;}
-        std::string getUploadStore() const {return (this->_upload_store);}
+        // void setUploadStore(const std::string& u_s) {this->_upload_store = u_s;}
+        // std::string getUploadStore() const {return (this->_upload_store);}
 
-        // _cgi_pass
+        // // _cgi_pass
 
-        void setCgiPass(const std::string& c_p) {this->_cgi_pass = c_p;}
-        std::string getCgiPass() const {return (this->_cgi_pass);}
+        // void setCgiPass(const std::string& c_p) {this->_cgi_pass = c_p;}
+        // std::string getCgiPass() const {return (this->_cgi_pass);}
 
-        // _cgi_dir
+        // // _cgi_dir
 
-        void setCgiDir(const std::string& c_d) {this->_cgi_dir = c_d;}
-        std::string getCgiDir() const {return (this->_cgi_dir);}
+        // void setCgiDir(const std::string& c_d) {this->_cgi_dir = c_d;}
+        // std::string getCgiDir() const {return (this->_cgi_dir);}
+
+        // _cgi
+        void setCgi(bool c){this->_cgi = c;}
+        bool getCgi() const {return (this->_cgi);}
 };
 
 

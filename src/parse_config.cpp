@@ -14,7 +14,12 @@ static std::string trim(const std::string& str) {
 
 
 Route parse_route(std::string route, std::string block_route){
-	(void)route;
+    
+	size_t eq = route.find('=');
+    if (eq != std::string::npos)
+        route = trim(route.substr(eq + 1));
+    route = trim(route);
+
     std::string line;
     std::stringstream route_stream(block_route);
     Route route_ret;
@@ -28,16 +33,7 @@ Route parse_route(std::string route, std::string block_route){
         if (equal_pos != std::string::npos && semi_pos != std::string::npos && semi_pos > equal_pos) {
             std::string key = trim(line.substr(0, equal_pos));
             std::string val = trim(line.substr(equal_pos + 1, semi_pos - equal_pos - 1));
-        
-            /* parse _std::string _route_path;
-            std::string _allow_methods;
-            std::string _root;
-            bool _autoindex; //
-            std::string _index;
-            std::string _upload_store;
-            std::string _cgi_pass;
-            std::string _cgi_dir;
-            */
+
             if (key == "allow_methods") {
                 route_ret.setAllowMethods(val);
             } else if (key == "root") {
@@ -47,16 +43,20 @@ Route parse_route(std::string route, std::string block_route){
                     route_ret.setAutoindex(true);
             } else if (key == "index") {
                 route_ret.setIndex(val);
-            } else if (key == "upload_store") {
-                route_ret.setUploadStore(val);
-            } else if (key == "cgi_pass") {
-                if (val.compare(0, 3, ".py") != 0)
-                    throw std::runtime_error("Wrong file format for cgi_pass");
-                route_ret.setCgiPass(val);
-            } else if (key == "cgi_dir") {
-                
-                route_ret.setCgiDir(val);
+            } else if (key == "cgi") {
+                if (val == "on" || val == "true" || val == "1")
+                    route_ret.setCgi(true);
             }
+            // else if (key == "upload_store") {
+            //     route_ret.setUploadStore(val);
+            // } else if (key == "cgi_pass") {
+            //     if (val.compare(0, 3, ".py") != 0)
+            //         throw std::runtime_error("Wrong file format for cgi_pass");
+            //     route_ret.setCgiPass(val);
+            // } else if (key == "cgi_dir") {
+            //     route_ret.setCgiDir(val);
+            // } else if (key == "return"){
+
         }
     }
     return route_ret;
