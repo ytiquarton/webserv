@@ -9,7 +9,7 @@ std::string return_path_routed(std::string path, ServerConfig& server){
         std::string route_key = it->first;
 
         if (path.find(route_key) == 0) {
-            if (path.length() == route_key.length() || path[route_key.length()] == '/' || route_key == '/') {
+            if (path.length() == route_key.length() || path[route_key.length()] == '/' || route_key == "/") {
                 if (route_key.length() > best_match.length()) {
                     best_match = route_key;
                     target_route = it->second;
