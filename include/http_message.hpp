@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <map>
+#include <stdexcept>
 
 class http_message
 {
@@ -24,6 +25,20 @@ class http_message
 	Methods method;
 	std::string	url;
 	std::string version;
-
 	std::string	left_over;
+
+	class http_error : public std::runtime_error
+	{
+		private:
+			const int nb;
+		public:
+			http_error(const std::string& msg, int _nb): runtime_error(msg), nb(_nb)
+			{
+
+			}
+			int get_nb() const
+			{
+				return nb;
+			}
+	};
 };

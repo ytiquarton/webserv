@@ -25,8 +25,25 @@ void start_epoll(Server& server)
 	if (getaddrinfo("::1", int_to_string(server.config.getPort()).c_str(), 0, &server.epoll.myaddr))
 		throw(std::runtime_error("Address error !"));
 	epoll_data.mysocket = socket(AF_INET6, SOCK_STREAM, 0);
-	bind(epoll_data.mysocket, epoll_data.myaddr->ai_addr, epoll_data.myaddr->ai_addrlen);
-	listen(epoll_data.mysocket, 1000);
+	if (epoll_data.mysocket == -1)
+		throw(std::runtime_error("socket error!"));
+	int reuse = 1;
+	if(setsockopt(epoll_data.mysocket, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)))
+	{
+		close(epoll_data.mysocket);
+		throw(std::runtime_error("sockopt error!"));
+	}
+	if (bind(epoll_data.mysocket, epoll_data.myaddr->ai_addr, epoll_data.myaddr->ai_addrlen) == -1)
+	{
+		close(epoll_data.mysocket);
+		throw(std::runtime_error("bind error!"));
+	}
+	if (listen(epoll_data.mysocket, 1000) == -1)
+	{
+		close(epoll_data.mysocket);
+		throw(std::runtime_error("epoll listen error!"));
+	}
+
 	epoll_data.myepoll = epoll_create(10000);
 	add_socket_to_epoll(epoll_data.mysocket, epoll_data.myepoll);
 	epoll_data.events = new epoll_event();

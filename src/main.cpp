@@ -39,7 +39,8 @@ int main(int argc, char **argv, char **envp)
 	server.envp = envp;
 	if (argc > 1)
 		start_server(server, argv[1]);
-	start_server(server, "config.conf");
+	else
+		start_server(server, "config.conf");
 	std::cout<< "Listening at http://[::1]:"<< server.config.getPort() <<"/\n";
 
 

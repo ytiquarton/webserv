@@ -1,39 +1,38 @@
 #include "utils.hpp"
+#include <sys/stat.h>
+#include <string>
+#include "http_message.hpp"
 
-std::string return_path_routed(std::string path, ServerConfig& server){
-    const std::map<std::string, Route>& routes = server.getRoutes();
-    std::string best_match = "";
-    Route target_route;
-
-    for (std::map<std::string, Route>::const_iterator it = routes.begin(); it != routes.end(); it++) {
-        std::string route_key = it->first;
-
-        if (path.find(route_key) == 0) {
-            if (path.length() == route_key.length() || path[route_key.length()] == '/' || route_key == "/") {
-                if (route_key.length() > best_match.length()) {
-                    best_match = route_key;
-                    target_route = it->second;
-                }
-            }
-        }
-    }
-    if (best_match.empty())
+std::string appendRoute(Route target_route, std::string path)
+{
+    std::string root = target_route.getRoot();
+	std::string output;
+    if (root.empty()) 
         return path;
+
+    if (!root.empty() && root[root.length() - 1] == '/' && !path.empty() && path[0] == '/') 
+        root.erase(root.length() - 1);
+    else if (!root.empty() && root[root.length() - 1] != '/' && !path.empty() && path[0] != '/')
+		root += "/";
+	output = root + path;
+	if (output[0] == '/')
+		output = output.substr(1);
+    return output;
+}
+
+std::string return_path_routed(std::string path, ServerConfig& server)
+{
+	Route target_route = server.getOneRoute(path);
 
     std::pair<int, std::string> redir = target_route.getRedir();
     if (redir.first != 0)
-        return redir.second;
-    
-    std::string root = target_route.getRoot();
-    if (root.empty()) 
-        return path;
-    
-    std::string sub_path = path.substr(best_match.length());
-    if (!root.empty() && root[root.length() - 1] == '/' && !sub_path.empty() && sub_path[0] == '/') 
-        root.erase(root.length() - 1);
-    else if (!root.empty() && root[root.length() - 1] != '/' && !sub_path.empty() && sub_path[0] != '/')
-        root += "/";
-    return root + sub_path;
-
+		return redir.second;
+	return (appendRoute(target_route, path.substr(target_route.getRoutePath().length())));
 }
 
+
+bool isDirectory(const std::string& path)
+{
+	struct stat info;
+	return stat(path.c_str(), &info) == 0 && S_ISDIR(info.st_mode);
+}

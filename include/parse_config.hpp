@@ -131,11 +131,24 @@ class ServerConfig {
         }
 
         Route getOneRoute(std::string path) const {
-            std::map<std::string, Route>::const_iterator it = this->_lst_routes.find(path);
-            if (it != this->_lst_routes.end())
-                return it->second;
-            Route error_route;
-            return error_route;
+			std::string best_match = "";
+			Route target_route;
+
+			for (std::map<std::string, Route>::const_iterator it = _lst_routes.begin(); it != _lst_routes.end(); it++) {
+				std::string route_key = it->first;
+
+				if (path.find(route_key) == 0) {
+					if (path.length() == route_key.length() || path[route_key.length()] == '/' || route_key[route_key.length() - 1] == '/') {
+						if (route_key.length() > best_match.length()) {
+							best_match = route_key;
+							target_route = it->second;
+						}
+					}
+				}
+			}
+			if (best_match.empty())
+        		throw (std::runtime_error("No route was found for this path..."));
+			return target_route;
         }
 
         void setRoute(const std::string& path, const Route& c_route){
@@ -146,7 +159,6 @@ class ServerConfig {
 
 Route parse_route(std::string route, std::string block_route);
 ServerConfig parse_server(std::string conf_path);
-std::string return_path_routed(std::string path);
 
 
 
