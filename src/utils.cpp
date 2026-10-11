@@ -34,6 +34,15 @@ std::string return_path_routed(std::string path, ServerConfig& server){
     else if (!root.empty() && root[root.length() - 1] != '/' && !sub_path.empty() && sub_path[0] != '/')
         root += "/";
     return root + sub_path;
+}
+
+bool existDir(const std::string& path) {
+    struct stat info;
+
+    if (stat(path.c_str(), &info) != 0) {
+        return false;
+    }
+    return (info.st_mode & S_IFDIR) != 0;
 
 }
 

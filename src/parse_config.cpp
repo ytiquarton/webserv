@@ -46,6 +46,17 @@ Route parse_route(std::string route, std::string block_route){
             } else if (key == "cgi") {
                 if (val == "on" || val == "true" || val == "1")
                     route_ret.setCgi(true);
+                else
+                    std::cerr << "cgi parse error" << std::endl;
+            }
+            else if (key == "return") {
+                std::stringstream ss(val);
+                int code;
+                std::string target_path;
+                if (ss >> code >> target_path)
+                    route_ret.setRedir(code, target_path);
+                else
+                    std::cerr << "Redir parse error" << std::endl;
             }
             // else if (key == "upload_store") {
             //     route_ret.setUploadStore(val);
@@ -182,6 +193,11 @@ ServerConfig parse_server(std::string conf_path){
                     }
                 }
                 Route r = parse_route(val, block_route);
+                std::string root_path = r.getRoot();
+                if (!root_path.empty()){
+                    if (!existDir(root_path))
+                        std::cerr << "dir not existing, location parsing" << std::endl;
+                }
                 serv.setRoute(val, r);
             }
 
