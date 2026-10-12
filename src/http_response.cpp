@@ -55,7 +55,10 @@ std::string get_HTML(std::string requested_page, Server& serv)
 
 	std::string file_to_serve;
 	if (isDirectory(requested_page))
+	{
+		std::cout << "Is directory!\n";
 		file_to_serve = appendRoute( rte, rte.getIndex());
+	}
 	else
 	{
 		file_to_serve = return_path_routed(requested_page, serv.config);

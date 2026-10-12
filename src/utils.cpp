@@ -44,5 +44,4 @@ bool existDir(const std::string& path) {
         return false;
     }
     return (info.st_mode & S_IFDIR) != 0;
-
 }
