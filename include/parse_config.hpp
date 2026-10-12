@@ -10,6 +10,8 @@
 #include <sstream>
 #include <exception>
 
+#include "utils.hpp"
+
 class Route;
 class ServerConfig;
 
