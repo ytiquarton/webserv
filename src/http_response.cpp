@@ -113,7 +113,7 @@ void	safe_send_Error(int fd, const http_message::http_error& error, Server &serv
 	send_HTTP_Message(fd, "", code);
 }
 
-void	sendHTMLPage(int fd, std::string requested_page, Server& serv, int depth=0)
+void	sendHTMLPage(int fd, std::string requested_page, Server& serv)
 {
 	std::ostringstream ss;
 	try
