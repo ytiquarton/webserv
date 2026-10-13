@@ -1,35 +1,35 @@
 #include <map>
-#include "http_message.hpp"
+#include "http_request.hpp"
 #include <string>
 #include <iostream>
 #include <stdexcept>
 #include <utility>
 #include "string_utils.hpp"
 
-http_message::http_message(): incomplete(true)
+http_request::http_request(): incomplete(true)
 {
 
 }
 
-std::map<std::string, http_message::Methods>	make_methods_map()
+std::map<std::string, http_request::Methods>	make_methods_map()
 {
-	std::map<std::string, http_message::Methods>	output;
+	std::map<std::string, http_request::Methods>	output;
 
-	output["GET"] = http_message::GET;
-	output["POST"] = http_message::POST;
-	output["DELETE"] = http_message::DELETE;
+	output["GET"] = http_request::GET;
+	output["POST"] = http_request::POST;
+	output["DELETE"] = http_request::DELETE;
 	return (output);
 }
 
-const std::map<std::string, http_message::Methods>
-    http_message::methods_map = make_methods_map();
+const std::map<std::string, http_request::Methods>
+    http_request::methods_map = make_methods_map();
 
 
 
 
-bool	is_request(http_message &message)
+bool	is_request(http_request &message)
 {
-	if (http_message::methods_map.find(message.start_line.substr(0, message.start_line.find(" "))) != http_message::methods_map.end())
+	if (http_request::methods_map.find(message.start_line.substr(0, message.start_line.find(" "))) != http_request::methods_map.end())
 	{
 		std::string::size_type first = message.start_line.find(" ");
 		std::string::size_type second = message.start_line.find(" ", first + 1);
@@ -38,7 +38,7 @@ bool	is_request(http_message &message)
 		if (first == std::string::npos || second == std::string::npos || third != std::string::npos)
 			throw std::runtime_error("Invalid request!");
 		
-		message.method = http_message::methods_map.find(message.start_line.substr(0, first))->second;
+		message.method = http_request::methods_map.find(message.start_line.substr(0, first))->second;
 		message.url = message.start_line.substr(first + 1, second - first - 1);
 		message.version = message.start_line.substr(second + 1);
 		return (true);
@@ -71,9 +71,9 @@ std::pair<std::string, std::string>	get_pair(std::string key_value_pair)
 	return (output);
 }
 
-http_message http_message::parse_message(std::string message)
+http_request http_request::parse_message(std::string message)
 {
-	http_message	output;
+	http_request	output;
 	std::string		key_value_pair;
 
 	try{
@@ -89,7 +89,7 @@ http_message http_message::parse_message(std::string message)
 				std::cout << "Header End! \n";
 				break;
 			}
-			output.header.insert(get_pair(key_value_pair));
+			output.headers.insert(get_pair(key_value_pair));
 		}
 		
 	}catch(const std::exception& e)
@@ -98,7 +98,7 @@ http_message http_message::parse_message(std::string message)
 			return (output);
 		throw(std::runtime_error(std::string("Wrong message format: ") + e.what()));
 	}
-	if((output.header.find("Context-Length") != output.header.end() && output.header["Context-Length"] != "0") || output.header.find("Transfer-Encoding") != output.header.end())
+	if((output.headers.find("Context-Length") != output.headers.end() && output.headers["Context-Length"] != "0") || output.headers.find("Transfer-Encoding") != output.headers.end())
 		throw(std::runtime_error("Request contains a body!"));
 	output.incomplete = false;
 	output.left_over = message;

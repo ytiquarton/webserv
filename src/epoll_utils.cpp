@@ -2,7 +2,7 @@
 #include "epoll_utils.hpp"
 #include <iostream>
 #include <unistd.h>
-#include "http_message.hpp"
+#include "http_request.hpp"
 #include "http_handler.hpp"
 #include <sys/socket.h>
 #include "webserv.hpp"
@@ -87,7 +87,7 @@ void	read_connection(connection& _connection, int epoll_fd)
 void	handle_event(epoll_event	*event, int	mysocket, int myepoll, std::map<int, connection>& connections, Server& serv)
 {
 	int	newsocket;
-	http_message message;
+	http_request message;
 	
 
 	if (event->events & EPOLLIN)
@@ -104,7 +104,7 @@ void	handle_event(epoll_event	*event, int	mysocket, int myepoll, std::map<int, c
 			while (true)
 			{
 				read_connection(*static_cast<connection*>(event->data.ptr), myepoll);
-				message = http_message::parse_message(static_cast<connection*>(event->data.ptr)->buffer);
+				message = http_request::parse_message(static_cast<connection*>(event->data.ptr)->buffer);
 				std::cout << "Received : \"";
 				std::cout << static_cast<connection*>(event->data.ptr)->buffer;
 				std::cout << "\" from fd: " << static_cast<connection*>(event->data.ptr)->fd << std::endl;

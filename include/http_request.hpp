@@ -3,7 +3,7 @@
 #include <map>
 #include <stdexcept>
 
-class http_message
+class http_request
 {
 	public:
 	enum Methods
@@ -13,14 +13,14 @@ class http_message
 		DELETE
 	};
 
-	http_message();
+	http_request();
 
 	bool	incomplete;
 	std::string	start_line;
-	std::map<std::string, std::string> header;
+	std::map<std::string, std::string> headers;
 	std::string	message_body;
 	static const	std::map<std::string, Methods> methods_map;
-	static http_message parse_message(std::string message);
+	static http_request parse_message(std::string message);
 
 	Methods method;
 	std::string	url;

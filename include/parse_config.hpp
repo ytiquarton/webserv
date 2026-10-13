@@ -1,6 +1,4 @@
-#ifndef SERVER_HPP
-# define SERVER_HPP
-
+#pragma once
 #include <string>
 #include <vector>
 #include <map>
@@ -161,7 +159,3 @@ class ServerConfig {
 
 Route parse_route(std::string route, std::string block_route);
 ServerConfig parse_server(std::string conf_path);
-
-
-
-#endif
