@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include "webserv.hpp"
+#include "string_utils.hpp"
 
 class http_response
 {
@@ -18,7 +19,7 @@ class http_response
 		}
 		http_response &setLength()
 		{
-			headers["Content-Length"] = body.size();
+			headers["Content-Length"] = int_to_string(body.size());
 			return (*this);
 		}
 };

@@ -56,7 +56,7 @@ http_response getResponseGetURL(std::string requested_page, Server& serv)
 		{
 			output.body = getDirHTML(file_to_serve);
 			output.headers["Content-Type"] = "text/html; charset=utf-8";
-			return (output);
+			return (output.setLength());
 		}
 	}
 	std::cout<< "HTML to serve: " << file_to_serve << std::endl;

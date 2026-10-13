@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include "webserv.hpp"
 #include "string_utils.hpp"
+#include <fcntl.h>
 
 void	add_socket_to_epoll(int socket_fd, int epoll_fd)
 {
@@ -95,6 +96,13 @@ void	handle_event(epoll_event	*event, int	mysocket, int myepoll, std::map<int, c
 		if (event->data.fd == mysocket)
 		{
 			newsocket = accept(mysocket, 0 ,0);
+			if (newsocket == -1)
+				return;
+			int flags = fcntl(newsocket, F_GETFL, 0);
+			if (flags == -1
+				|| fcntl(newsocket, F_SETFL, flags | O_NONBLOCK) == -1)
+				close(newsocket);
+				return;
 			std::cout << "Incoming connection!" << std::endl;
 			connections[newsocket].fd = newsocket;
 			add_connection_to_epoll(newsocket, &connections[newsocket], myepoll);
