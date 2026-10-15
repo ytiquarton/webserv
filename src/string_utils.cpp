@@ -31,3 +31,8 @@ std::string int_to_string(int nb)
 	ss << nb;
 	return ss.str();
 }
+
+bool	endsWith(const std::string& base, const std::string& substring)
+{
+	return (base.size() >= substring.size() && base.compare(base.size()-substring.size(), substring.size(), substring) == 0);
+}

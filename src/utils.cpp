@@ -62,9 +62,6 @@ std::string return_path_routed(std::string path, ServerConfig& server)
 {
 	Route target_route = server.getOneRoute(path);
 
-    std::pair<int, std::string> redir = target_route.getRedir();
-    if (redir.first != 0)
-		return redir.second;
 	return (appendRoute(target_route, path.substr(target_route.getRoutePath().length())));
 }
 

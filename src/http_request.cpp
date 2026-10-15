@@ -50,13 +50,10 @@ std::string get_next_line(std::string& content)
 {
 	std::string	output;
 
-	std::cout << "Getting next line... " << std::endl;
 	if (content.find("\r\n") == std::string::npos)
 		throw (std::runtime_error("No endline!"));
 	output = content.substr(0, content.find("\r\n"));
 	content = content.substr(content.find("\r\n") + 2, std::string::npos);
-
-	std::cout << "Found line: \n" << output << std::endl;
 	return (output);
 }
 

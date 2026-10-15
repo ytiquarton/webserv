@@ -75,13 +75,13 @@ void	read_connection(connection& _connection, int epoll_fd)
 
 	std::cout<< "Reading input...\n";
 	len = read(_connection.fd, buffer, 4096);
-	if (len<0)
+	if (len < 0)
 		throw(std::runtime_error("Read fail!"));
 	if (len == 0)
 		epoll_ctl(epoll_fd, EPOLL_CTL_DEL, _connection.fd, NULL);
 	std::cout<< "Reading End...\n";
 	_connection.buffer.append(buffer, static_cast<size_t>(len));
-	
+
 	delete[] buffer;
 }
 
@@ -99,33 +99,30 @@ void	handle_event(epoll_event	*event, int	mysocket, int myepoll, std::map<int, c
 			if (newsocket == -1)
 				return;
 			int flags = fcntl(newsocket, F_GETFL, 0);
-			if (flags == -1
-				|| fcntl(newsocket, F_SETFL, flags | O_NONBLOCK) == -1)
+			if (flags == -1 || fcntl(newsocket, F_SETFL, flags | O_NONBLOCK) == -1)
+			{
 				close(newsocket);
 				return;
+			}
 			std::cout << "Incoming connection!" << std::endl;
 			connections[newsocket].fd = newsocket;
 			add_connection_to_epoll(newsocket, &connections[newsocket], myepoll);
 		}
 		else
 		{
-			while (true)
+			read_connection(*static_cast<connection*>(event->data.ptr), myepoll);
+			message = http_request::parse_message(static_cast<connection*>(event->data.ptr)->buffer);
+			std::cout << "Received : \"";
+			std::cout << static_cast<connection*>(event->data.ptr)->buffer;
+			std::cout << "\" from fd: " << static_cast<connection*>(event->data.ptr)->fd << std::endl;
+			if (!message.incomplete)
 			{
-				read_connection(*static_cast<connection*>(event->data.ptr), myepoll);
-				message = http_request::parse_message(static_cast<connection*>(event->data.ptr)->buffer);
-				std::cout << "Received : \"";
-				std::cout << static_cast<connection*>(event->data.ptr)->buffer;
-				std::cout << "\" from fd: " << static_cast<connection*>(event->data.ptr)->fd << std::endl;
-				if (!message.incomplete)
-				{
-					static_cast<connection*>(event->data.ptr)->buffer = message.left_over;
-					handle_http_message(static_cast<connection*>(event->data.ptr)->fd, message, serv);
-				}
-				else
-				{
-					std::cout << "Incomplete message !\n";
-					break;
-				}
+				static_cast<connection*>(event->data.ptr)->buffer = message.left_over;
+				handle_http_message(static_cast<connection*>(event->data.ptr)->fd, message, serv);
+			}
+			else
+			{
+				std::cout << "Incomplete message !\n";
 			}
 		}
 	}

@@ -10,6 +10,7 @@
 #include "parse_config.hpp"
 #include "http_request.hpp"
 #include "http_response.hpp"
+#include "string_utils.hpp"
 
 std::string	getDirHTML(std::string const path)
 {
@@ -28,10 +29,17 @@ std::string	getDirHTML(std::string const path)
 		std::string fullPath = path + "/" + name;
 		struct stat info;
 		if (stat(fullPath.c_str(), &info) == 0 && (S_ISDIR(info.st_mode) || S_ISREG(info.st_mode)))
-			output = output + "	<li><a href=\"" + name + "\">file.txt</a></li>\n";
+			output = output + "	<li><a href=\"" + name + "\">"+name+"</a></li>\n";
 	}
 	output = output + "</ul>\n</body>\n</html>";
 	return (output);
+}
+
+http_response	getRedirect(const std::string& newURL, int code = 301)
+{
+	http_response	output(code, "");
+	output.headers["Location"] = newURL;
+	return (output.setLength());
 }
 
 http_response getResponseGetURL(std::string requested_page, Server& serv)
@@ -43,6 +51,9 @@ http_response getResponseGetURL(std::string requested_page, Server& serv)
 	if (rte.getAllowMethods().find("GET") == std::string::npos)
 		throw (http_request::http_error("Method not allowed!", 405));
 
+    std::pair<int, std::string> redir = rte.getRedir();
+    if (redir.first != 0)
+		return (getRedirect(redir.second, redir.first));
 	std::string file_to_serve = return_path_routed(requested_page, serv.config);
 	if (isDirectory(file_to_serve))
 	{
@@ -61,7 +72,7 @@ http_response getResponseGetURL(std::string requested_page, Server& serv)
 	}
 	std::cout<< "HTML to serve: " << file_to_serve << std::endl;
 	output.body = read_file(file_to_serve);
-	if (file_to_serve.size() > std::string(".html").size() && file_to_serve.compare(file_to_serve.size()-std::string(".html").size(), std::string(".html").size(), ".html") == 0)
+	if (endsWith(file_to_serve, ".html"))
 		output.headers["Content-Type"] = "text/html; charset=utf-8";
 	return (output.setLength());
 }
