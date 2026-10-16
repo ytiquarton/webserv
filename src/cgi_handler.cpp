@@ -4,6 +4,12 @@
 #include <stdexcept>
 #include <vector>
 #include <iostream>
+#include "http_request.hpp"
+
+char	**get_CGI_env(char **originalEnv, http_request request)
+{
+
+}
 
 void	start_CGI(std::string path, http_request request, int fd)
 {
