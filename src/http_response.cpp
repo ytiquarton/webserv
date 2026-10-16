@@ -11,6 +11,7 @@
 #include "http_request.hpp"
 #include "http_response.hpp"
 #include "string_utils.hpp"
+#include "cgi_handler.hpp"
 
 std::string	getDirHTML(std::string const path)
 {
@@ -54,9 +55,12 @@ http_response getResponseGetURL(std::string requested_page, Server& serv)
     std::pair<int, std::string> redir = rte.getRedir();
     if (redir.first != 0)
 		return (getRedirect(redir.second, redir.first));
+
 	std::string file_to_serve = return_path_routed(requested_page, serv.config);
 	if (isDirectory(file_to_serve))
 	{
+		if (!endsWith(requested_page, "/"))
+			return (getRedirect(requested_page + "/", 301));
 		std::cout << file_to_serve << " Is directory!\n";
 		if ( !rte.getAutoindex())
 		{
@@ -70,6 +74,7 @@ http_response getResponseGetURL(std::string requested_page, Server& serv)
 			return (output.setLength());
 		}
 	}
+	
 	std::cout<< "HTML to serve: " << file_to_serve << std::endl;
 	output.body = read_file(file_to_serve);
 	if (endsWith(file_to_serve, ".html"))
@@ -133,12 +138,22 @@ void	safe_send_Error(int fd, const http_request::http_error& error, Server &serv
 	send_HTTP_Message(fd, response);
 }
 
-void	getURL(int fd, std::string requested_page, Server& serv)
+void	getURL(int fd, http_request message, Server& serv)
 {
 	std::ostringstream ss;
 	try
 	{
-		send_HTTP_Message(fd, getResponseGetURL(requested_page, serv));
+		
+		if (endsWith(message.url, ".py") && serv.config.getOneRoute(message.url).getCgi())
+		{
+			std::cout << "CGI!!!!\n";
+			start_CGI(return_path_routed(message.url, serv.config), message, fd);
+		}
+		else
+		{
+			std::cout << "Boring usual request... \n";
+			send_HTTP_Message(fd, getResponseGetURL(message.url, serv));
+		}
 	}
 	catch(const http_request::http_error& e)
 	{
@@ -146,6 +161,7 @@ void	getURL(int fd, std::string requested_page, Server& serv)
 	}
 	catch (std::exception& e)
 	{
+		std::cout<<"Error!!!\n";
 		throw(e);
 	}
 }

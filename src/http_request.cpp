@@ -21,6 +21,21 @@ std::map<std::string, http_request::Methods>	make_methods_map()
 	return (output);
 }
 
+std::map<http_request::Methods, std::string>	make_r_methods_map()
+{
+	std::map<http_request::Methods, std::string>	output;
+
+	output[http_request::GET] = "GET";
+	output[http_request::POST] = "POST";
+	output[http_request::DELETE] = "DELETE";
+	return (output);
+}
+
+const	std::map<http_request::Methods, std::string> 
+	http_request::r_methods_map = make_r_methods_map();
+
+
+
 const std::map<std::string, http_request::Methods>
     http_request::methods_map = make_methods_map();
 

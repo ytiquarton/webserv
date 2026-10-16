@@ -23,8 +23,7 @@ class http_response
 			return (*this);
 		}
 };
-
-void	getURL(int fd, std::string requested_page, Server& serv);
+void	getURL(int fd, http_request mesage, Server& serv);
 void	sendDELETEstatus(int fd, int status);
 void	sendPOSTstatus(int fd, int status);
 void	sendError(int fd, int code, Server &serv);

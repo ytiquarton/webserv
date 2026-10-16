@@ -16,7 +16,7 @@ void	handle_http_message(int fd, http_request message, Server& serv)
 {
 	if (message.method == http_request::GET)
 	{
-		getURL(fd, message.url, serv);
+		getURL(fd, message, serv);
 		return;
 	}
 	else if (message.method == http_request::POST)

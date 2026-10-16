@@ -20,6 +20,7 @@ class http_request
 	std::map<std::string, std::string> headers;
 	std::string	message_body;
 	static const	std::map<std::string, Methods> methods_map;
+	static const	std::map<Methods, std::string> r_methods_map;
 	static http_request parse_message(std::string message);
 
 	Methods method;
