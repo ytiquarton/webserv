@@ -31,32 +31,32 @@ std::vector<std::string> &add_var(std::vector<std::string> &env, std::string var
 	return (env);
 }
 
-char	**get_CGI_env(char **originalEnv, http_request request, Server serv, std::string CGI_Path)
+char	**get_CGI_env(http_request request, Server serv)
 {
+	char **temp = serv.envp;
 	std::vector<std::string> newEnv;
 
-	while(originalEnv && *originalEnv)
+	while(temp && *temp)
 	{
-		newEnv.push_back(*originalEnv);
-		originalEnv++;
+		newEnv.push_back(*temp);
+		temp++;
 	}
 	// https://www.rfc-editor.org/rfc/rfc3875.html#section-4.1
 	add_var(newEnv, "GATEWAY_INTERFACE=CGI/1.1");
 	add_var(newEnv, "SERVER_SOFTWARE=webserv/1.0");
 	add_var(newEnv, "SERVER_NAME=localhost");
 	add_var(newEnv, "SERVER_PORT="+int_to_string(serv.config.getPort()));
-	add_var(newEnv, "SERVER_PROTOCOL=HTTP/1.1");
+	add_var(newEnv, "SERVER_PROTOCOL="+request.version);
 	add_var(newEnv, "REQUEST_METHOD="+http_request::r_methods_map.find(request.method)->second);
-	add_var(newEnv, "SCRIPT_NAME="+CGI_Path);
+	add_var(newEnv, "SCRIPT_NAME="+request.url);
 	add_var(newEnv, "QUERY_STRING="+request.query);
 	add_var(newEnv, "REMOTE_ADDR="+request.client_IP);
-	if(request.headers.find("Content-Type")!=request.headers.end())
+	if(request.headers.find("content-type")!=request.headers.end())
 		add_var(newEnv, "CONTENT_TYPE="+request.headers["content-type"]);
-	if(request.headers.find("Content-Length")!=request.headers.end())
-		add_var(newEnv, "CONTENT_LENGTH="+request.headers["content-length"]);
+	add_var(newEnv, "CONTENT_LENGTH="+ int_to_string(request.message_body.size()));
 }
 
-void	start_CGI(std::string path, http_request request, int fd)
+void	start_CGI(std::string path, http_request request, int fd, Server serv)
 {
 	int	pipe_fds[2];
 	if (pipe(pipe_fds) == -1)
@@ -72,9 +72,9 @@ void	start_CGI(std::string path, http_request request, int fd)
 	{
 		unsigned int index(0);
 		close(pipe_fds[0]);
-		while (index < request.body.size())
+		while (index < request.message_body.size())
 		{
-			index += write(pipe_fds[1], request.body.c_str(), request.body.size());
+			index += write(pipe_fds[1], request.message_body.c_str(), request.message_body.size());
 		}
 		close(pipe_fds[1]);
 		return;
@@ -91,10 +91,8 @@ void	start_CGI(std::string path, http_request request, int fd)
 	argv.push_back(0);
 
 	
-	std::vector<char *> envp;
-	envp.push_back("REQUEST_METHOD"+request.method);
 
-	execve(path.c_str(), &argv[0], &envp[0]);
+	execve(path.c_str(), &argv[0], get_CGI_env(request, serv));
 	std::cerr << "Child fail?\n\n";
 	throw(std::runtime_error("CGI child fail!"));
 }
