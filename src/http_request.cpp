@@ -113,19 +113,21 @@ void	parse_body(http_request &message, std::string &str_message)
 			throw(http_request::http_error("Invalid headers!", 400));
 		if((hasContentLength && message.headers["content-length"] != "0"))
 		{
-			int len = std::atoi(message.headers["content-length"].c_str());
-			if (str_message.size()<len)
+			size_t len = std::atoi(message.headers["content-length"].c_str());
+			if (str_message.size() < len)
 				throw(std::runtime_error("Incomplete!"));
 			message.message_body = str_message.substr(0, len);
 			message.left_over = str_message.substr(len);
 		}
 		else if(hasChunkTransfer)
 		{
-			int	len;
+			long int	len;
 			while(true)
 			{
-				len = std::atoi(get_next_line(str_message).c_str());
-				if (str_message.size()<len)
+				len = std::strtol(get_next_line(str_message).c_str(), 0, 16);
+				if (len < 0)
+					throw(std::runtime_error("Invalid len"));
+				if (str_message.size() < static_cast<size_t>(len))
 					throw(std::runtime_error("Incomplete!"));
 				if (len == 0)
 					break;
@@ -133,8 +135,11 @@ void	parse_body(http_request &message, std::string &str_message)
 				str_message = str_message.substr(len);
 				if (str_message.substr(0, 2) != "\r\n")
 					throw(std::runtime_error("Incomplete!"));
-					
+				str_message = str_message.substr(2);
 			}
+			if (str_message.substr(0, 2) != "\r\n")
+				throw(std::runtime_error("Incomplete!"));
+			str_message = str_message.substr(2);
 		}
 }
 
