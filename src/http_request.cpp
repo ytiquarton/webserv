@@ -108,7 +108,7 @@ void	parse_headers(http_request &message, std::string &str_message)
 void	parse_body(http_request &message, std::string &str_message)
 {
 		bool	hasContentLength = message.headers.find("content-length") != message.headers.end();
-		bool	hasChunkTransfer = message.headers.find("transfer-encoding") != message.headers.end() && output.headers["transfer-encoding"].find("chunked") != std::string::npos;
+		bool	hasChunkTransfer = message.headers.find("transfer-encoding") != message.headers.end() && message.headers["transfer-encoding"].find("chunked") != std::string::npos;
 		if (hasChunkTransfer && hasContentLength)
 			throw(http_request::http_error("Invalid headers!", 400));
 		if((hasContentLength && message.headers["content-length"] != "0"))
@@ -132,6 +132,7 @@ void	parse_body(http_request &message, std::string &str_message)
 				message.message_body.append(str_message.substr(0, len));
 				str_message = str_message.substr(len);
 				if (str_message.substr(0, 2) != "\r\n")
+					throw(std::runtime_error("Incomplete!"));
 					
 			}
 		}
