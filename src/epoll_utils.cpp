@@ -95,9 +95,12 @@ void	handle_event(epoll_event	*event, int	mysocket, int myepoll, std::map<int, c
 	{
 		if (event->data.fd == mysocket)
 		{
-			newsocket = accept(mysocket, 0 ,0);
+			sockaddr_in	clientAddr;
+			socklen_t	addrLen = sizeof(clientAddr);
+			newsocket = accept(mysocket, (sockaddr *)&clientAddr, &addrLen);
 			if (newsocket == -1)
 				return;
+			connections[newsocket].client_address = int_to_string(((unsigned char *)&clientAddr.sin_addr)[0]) + "." + int_to_string(((unsigned char *)&clientAddr.sin_addr)[1]) + "." + int_to_string(((unsigned char *)&clientAddr.sin_addr)[2]) + "." + int_to_string(((unsigned char *)&clientAddr.sin_addr)[3]);
 			int flags = fcntl(newsocket, F_GETFL, 0);
 			if (flags == -1 || fcntl(newsocket, F_SETFL, flags | O_NONBLOCK) == -1)
 			{
@@ -112,6 +115,7 @@ void	handle_event(epoll_event	*event, int	mysocket, int myepoll, std::map<int, c
 		{
 			read_connection(*static_cast<connection*>(event->data.ptr), myepoll);
 			message = http_request::parse_message(static_cast<connection*>(event->data.ptr)->buffer);
+			message.client_IP = static_cast<connection*>(event->data.ptr)->client_address;
 			std::cout << "Received : \"";
 			std::cout << static_cast<connection*>(event->data.ptr)->buffer;
 			std::cout << "\" from fd: " << static_cast<connection*>(event->data.ptr)->fd << std::endl;

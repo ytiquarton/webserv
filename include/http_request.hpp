@@ -15,6 +15,7 @@ class http_request
 
 	http_request();
 
+	std::string client_IP;
 	bool	incomplete;
 	std::string	start_line;
 	std::map<std::string, std::string> headers;
@@ -25,6 +26,7 @@ class http_request
 
 	Methods method;
 	std::string	url;
+	std::string	query;
 	std::string version;
 	std::string	left_over;
 

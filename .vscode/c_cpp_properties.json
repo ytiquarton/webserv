@@ -3,13 +3,22 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**",
-                "${workspaceFolder}/include"
+                "${workspaceFolder}/include",
+                "${workspaceFolder}"
             ],
             "defines": [],
-            "compilerPath": "/usr/bin/gcc",
+            "compilerPath": "/usr/bin/c++",
             "cStandard": "gnu17",
-            "intelliSenseMode": "linux-gcc-x64"
+            "intelliSenseMode": "linux-gcc-x64",
+            "cppStandard": "c++98",
+            "browse": {
+                "path": [
+                    "${workspaceFolder}/src",
+                    "${workspaceFolder}/include"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": "/tmp/webserv-cpptools-${env:USER}-088a46d143/symbols-v1322.vc.db"
+            }
         }
     ],
     "version": 4

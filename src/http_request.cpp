@@ -5,6 +5,8 @@
 #include <stdexcept>
 #include <utility>
 #include "string_utils.hpp"
+#include <cstdlib>
+
 
 http_request::http_request(): incomplete(true)
 {
@@ -55,6 +57,11 @@ bool	is_request(http_request &message)
 		
 		message.method = http_request::methods_map.find(message.start_line.substr(0, first))->second;
 		message.url = message.start_line.substr(first + 1, second - first - 1);
+		if (message.url.find("?") != std::string::npos)
+		{
+			message.query = message.url.substr(message.url.find("?") + 1);
+			message.url = message.url.substr(0, message.url.find("?"));
+		}
 		message.version = message.start_line.substr(second + 1);
 		return (true);
 	}
@@ -83,35 +90,77 @@ std::pair<std::string, std::string>	get_pair(std::string key_value_pair)
 	return (output);
 }
 
+void	parse_headers(http_request &message, std::string &str_message)
+{
+	std::string		key_value_pair;
+	while (true)
+	{
+		key_value_pair = get_next_line(str_message);
+		if (key_value_pair == "")
+		{
+			std::cout << "Header End! \n";
+			break;
+		}
+		message.headers.insert(get_pair(key_value_pair));
+	}
+}
+
+void	parse_body(http_request &message, std::string &str_message)
+{
+		bool	hasContentLength = message.headers.find("content-length") != message.headers.end();
+		bool	hasChunkTransfer = message.headers.find("transfer-encoding") != message.headers.end() && output.headers["transfer-encoding"].find("chunked") != std::string::npos;
+		if (hasChunkTransfer && hasContentLength)
+			throw(http_request::http_error("Invalid headers!", 400));
+		if((hasContentLength && message.headers["content-length"] != "0"))
+		{
+			int len = std::atoi(message.headers["content-length"].c_str());
+			if (str_message.size()<len)
+				throw(std::runtime_error("Incomplete!"));
+			message.message_body = str_message.substr(0, len);
+			message.left_over = str_message.substr(len);
+		}
+		else if(hasChunkTransfer)
+		{
+			int	len;
+			while(true)
+			{
+				len = std::atoi(get_next_line(str_message).c_str());
+				if (str_message.size()<len)
+					throw(std::runtime_error("Incomplete!"));
+				if (len == 0)
+					break;
+				message.message_body.append(str_message.substr(0, len));
+				str_message = str_message.substr(len);
+				if (str_message.substr(0, 2) != "\r\n")
+					
+			}
+		}
+}
+
 http_request http_request::parse_message(std::string message)
 {
 	http_request	output;
-	std::string		key_value_pair;
 
 	try{
 		output.start_line = get_next_line(message);
 		
 		if (!is_request(output))
 			throw(std::runtime_error("Received http message isn't a request!"));
-		while (true)
-		{
-			key_value_pair = get_next_line(message);
-			if (key_value_pair == "")
-			{
-				std::cout << "Header End! \n";
-				break;
-			}
-			output.headers.insert(get_pair(key_value_pair));
-		}
+		parse_headers(output, message);
+		parse_body(output, message);
+
+		
+
 		
 	}catch(const std::exception& e)
 	{
-		if (std::string(e.what()) == std::string("No endline!"))
+		if (std::string(e.what()) == std::string("No endline!") || 
+				std::string(e.what()) == std::string("Incomplete!") )
+		{
 			return (output);
+		}
 		throw(std::runtime_error(std::string("Wrong message format: ") + e.what()));
 	}
-	if((output.headers.find("Context-Length") != output.headers.end() && output.headers["Context-Length"] != "0") || output.headers.find("Transfer-Encoding") != output.headers.end())
-		throw(std::runtime_error("Request contains a body!"));
 	output.incomplete = false;
 	output.left_over = message;
 	return (output);

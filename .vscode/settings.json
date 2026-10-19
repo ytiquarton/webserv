@@ -1,0 +1,15 @@
+{
+    "C_Cpp.intelliSenseEngine": "default",
+    "C_Cpp.autocomplete": "default",
+    "[cpp]": {
+        "editor.quickSuggestions": {
+            "other": "on",
+            "comments": "off",
+            "strings": "on"
+        },
+        "editor.suggestOnTriggerCharacters": true,
+        "editor.parameterHints.enabled": true
+    },
+    "C_Cpp.default.browse.databaseFilename": "/tmp/webserv-cpptools-${env:USER}-088a46d143/symbols-v1322.vc.db",
+    "C_Cpp.intelliSenseCachePath": "/tmp/webserv-cpptools-${env:USER}-088a46d143/ipch"
+}

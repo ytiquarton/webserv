@@ -11,6 +11,7 @@ class connection
 	public:
 	std::string buffer;
 	int			fd;
+	std::string	client_address;
 };
 
 struct ServerEpoll
