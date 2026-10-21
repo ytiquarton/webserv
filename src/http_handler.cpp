@@ -14,20 +14,36 @@ void	delete_file(std::string path)
 
 void	handle_http_message(int fd, http_request message, Server& serv)
 {
-	if (message.method == http_request::GET)
+	try
 	{
-		getURL(fd, message, serv);
-		return;
+		if (message.method == http_request::GET)
+		{
+			getURL(fd, message, serv);
+			return;
+		}
+		else if (message.method == http_request::POST)
+		{
+			create_file(message.url, message.message_body);
+			sendPOSTstatus(fd, 0);
+		}
+		else if (message.method == http_request::DELETE)
+		{
+			delete_file(message.url);
+			sendDELETEstatus(fd, 0);
+		}
+		else
+			throw(std::runtime_error("Method not implemented yet!"));
 	}
-	else if (message.method == http_request::POST)
+	catch(const http_request::http_error& e)
 	{
-		create_file(message.url, message.message_body);
-		sendPOSTstatus(fd, 0);
+		safe_send_Error(fd, e, serv);
 	}
-	else if (message.method == http_request::DELETE)
+	catch (std::exception& e)
 	{
-		delete_file(message.url);
-		sendDELETEstatus(fd, 0);
+		if (std::string(e.what()) == "Child Error!")
+			throw(std::runtime_error("Child Error!"));
+		http_request::http_error error(e.what(), 500);
+		safe_send_Error(fd, error, serv);
 	}
-	throw("Method not implemented yet!");
+	
 }

@@ -94,31 +94,44 @@ void	start_CGI(std::string path, http_request request, int fd, Server& serv)
 		close(pipe_fds[0]);
 		try_nonblock_fd(pipe_fds[1]);
 		connection&	cgi_connection = serv.epoll.connections[pipe_fds[1]];
-		cgi_connection.is_cgi_fd = 1;
+		cgi_connection.type = connection::WriteFD;
 		cgi_connection.body = request.message_body;
 		cgi_connection.fd = pipe_fds[1];
-		add_connection_to_epoll(pipe_fds[1], &cgi_connection, serv.epoll.myepoll, EPOLLOUT);
+		try
+		{
+			add_connection_to_epoll(pipe_fds[1], &cgi_connection, serv.epoll.myepoll, EPOLLOUT);
+		}
+		catch(...)
+		{
+			serv.epoll.connections.erase(pipe_fds[1]);
+			throw(http_request::http_error("CGI error!", 500));
+		}
 		return;
 	}
 	close(pipe_fds[1]);
 	if (dup2(pipe_fds[0], 0) == -1)
-		throw(std::runtime_error("CGI child fail!"));
+		throw(std::runtime_error("Child Error!"));
 	if (dup2(fd, 1) == -1)
-		throw(std::runtime_error("CGI child fail!"));
+		throw(std::runtime_error("Child Error!"));
 	close(pipe_fds[0]);
 	close(fd);
 
-	path = rebase_to_script_dir(path);
+	std::vector<std::string> env_str;
+	std::vector<char *>	env_char_ptr;
 	std::vector<char *> argv;
-	argv.push_back((char *)path.c_str());
-	argv.push_back(0);
+	try{
+		path = rebase_to_script_dir(path);
+		argv.push_back((char *)path.c_str());
+		argv.push_back(0);
 
-	std::vector<std::string> env_str = get_CGI_env(request, serv);
-	std::vector<char *>	env_char_ptr = to_char_str_tab(env_str);
-	
-	
+		env_str = get_CGI_env(request, serv);
+		env_char_ptr = to_char_str_tab(env_str);
+	}
+	catch (...)
+	{
+		throw(std::runtime_error("Child Error!"));
+	}
 
 	execve(path.c_str(), &argv[0], &env_char_ptr[0]);
-	std::cerr << "Child fail?\n\n";
-	throw(std::runtime_error("CGI child fail!"));
+	throw(std::runtime_error("Child Error!"));
 }

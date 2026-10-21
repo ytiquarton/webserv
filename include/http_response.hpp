@@ -27,3 +27,4 @@ void	getURL(int fd, http_request mesage, Server& serv);
 void	sendDELETEstatus(int fd, int status);
 void	sendPOSTstatus(int fd, int status);
 void	sendError(int fd, int code, Server &serv);
+void	safe_send_Error(int fd, const http_request::http_error& error, Server &serv, bool connection_close = false);

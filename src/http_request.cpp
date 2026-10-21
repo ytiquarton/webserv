@@ -117,7 +117,7 @@ void	parse_body(http_request &message, std::string &str_message)
 			if (str_message.size() < len)
 				throw(std::runtime_error("Incomplete!"));
 			message.message_body = str_message.substr(0, len);
-			message.left_over = str_message.substr(len);
+			str_message = str_message.substr(len);
 		}
 		else if(hasChunkTransfer)
 		{

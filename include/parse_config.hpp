@@ -27,7 +27,7 @@ class Route {
         bool _cgi;
 
     public :
-        Route() : _route_path(""), _redir(0, ""), _allow_methods(""), _root(""), _autoindex(false), _index(""){}
+        Route() : _route_path(""), _redir(0, ""), _allow_methods(""), _root(""), _autoindex(false), _index(""), _cgi(false){}
 
         // _route_path
         void setRoutePath(const std::string& path) {this->_route_path = path;}

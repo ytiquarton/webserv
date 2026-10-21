@@ -32,6 +32,7 @@ std::string	getDirHTML(std::string const path)
 		if (stat(fullPath.c_str(), &info) == 0 && (S_ISDIR(info.st_mode) || S_ISREG(info.st_mode)))
 			output = output + "	<li><a href=\"" + name + "\">"+name+"</a></li>\n";
 	}
+	closedir(dir);
 	output = output + "</ul>\n</body>\n</html>";
 	return (output);
 }
@@ -114,11 +115,15 @@ void	send_HTTP_Message(int fd, http_response response)
 	send_to_fd(ss.str(), fd);
 }
 
-void	safe_send_Error(int fd, const http_request::http_error& error, Server &serv)
+void	safe_send_Error(int fd, const http_request::http_error& error, Server &serv, bool connection_close)
 {
 	int index = 0;
 	int code = error.get_nb();
 	http_response response(code, "");
+	if (connection_close)
+	{
+		response.headers["Connection"] = "close";
+	}
 	while (index < 10)
 	{
 		try{
@@ -140,29 +145,15 @@ void	safe_send_Error(int fd, const http_request::http_error& error, Server &serv
 
 void	getURL(int fd, http_request message, Server& serv)
 {
-	std::ostringstream ss;
-	try
+	if (endsWith(message.url, ".py") && serv.config.getOneRoute(message.url).getCgi())
 	{
-		
-		if (endsWith(message.url, ".py") && serv.config.getOneRoute(message.url).getCgi())
-		{
-			std::cout << "CGI!!!!\n";
-			start_CGI(return_path_routed(message.url, serv.config), message, fd, serv);
-		}
-		else
-		{
-			std::cout << "Boring usual request... \n";
-			send_HTTP_Message(fd, getResponseGetURL(message.url, serv));
-		}
+		std::cout << "CGI!!!!\n";
+		start_CGI(return_path_routed(message.url, serv.config), message, fd, serv);
 	}
-	catch(const http_request::http_error& e)
+	else
 	{
-		safe_send_Error(fd, e, serv);
-	}
-	catch (std::exception& e)
-	{
-		std::cout<<"Error!!!\n";
-		throw(e);
+		std::cout << "Boring usual request... \n";
+		send_HTTP_Message(fd, getResponseGetURL(message.url, serv));
 	}
 }
 

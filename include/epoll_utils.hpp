@@ -9,7 +9,13 @@ class Server;
 class connection
 {
 	public:
-	bool		is_cgi_fd;
+	enum Type
+	{
+		Epoll,
+		Client,
+		WriteFD
+	};
+	Type 		type;
 	std::string buffer;
 	int			fd;
 	std::string	client_address;
@@ -32,3 +38,4 @@ void epoll_handle(ServerEpoll& data, Server& serv);
 void start_epoll(Server& data);
 void	try_nonblock_fd(int fd);
 void	add_connection_to_epoll(int socket_fd, connection *_connection, int epoll_fd, unsigned int events);
+void	close_all_connections(int epoll, std::map<int, connection>& connections);
