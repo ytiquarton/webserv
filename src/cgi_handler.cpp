@@ -15,6 +15,14 @@ std::string	rebase_to_script_dir(std::string path)
 	std::string::size_type pos = path.find_last_of('/');
 	if (pos == std::string::npos)
 		return (path);
+	if (pos == 0)
+	{
+		if (chdir("/") == -1)
+		{
+			throw(std::runtime_error("chdir failed!"));
+		}
+		return (path.substr(1));
+	}
 	if (chdir(path.substr(0, pos).c_str()) == -1)
 	{
 		throw(std::runtime_error("chdir failed!"));
@@ -69,7 +77,7 @@ std::vector<std::string> get_CGI_env(http_request request, Server serv)
 	return (newEnv);
 }
 
-void	start_CGI(std::string path, http_request request, int fd, Server serv)
+void	start_CGI(std::string path, http_request request, int fd, Server& serv)
 {
 	int	pipe_fds[2];
 	if (pipe(pipe_fds) == -1)
@@ -83,13 +91,13 @@ void	start_CGI(std::string path, http_request request, int fd, Server serv)
 	}
 	if (p > 0)
 	{
-		unsigned int index(0);
 		close(pipe_fds[0]);
-		while (index < request.message_body.size())
-		{
-			index += write(pipe_fds[1], request.message_body.c_str(), request.message_body.size());
-		}
-		close(pipe_fds[1]);
+		try_nonblock_fd(pipe_fds[1]);
+		connection&	cgi_connection = serv.epoll.connections[pipe_fds[1]];
+		cgi_connection.is_cgi_fd = 1;
+		cgi_connection.body = request.message_body;
+		cgi_connection.fd = pipe_fds[1];
+		add_connection_to_epoll(pipe_fds[1], &cgi_connection, serv.epoll.myepoll, EPOLLOUT);
 		return;
 	}
 	close(pipe_fds[1]);

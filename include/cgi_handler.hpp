@@ -1,3 +1,5 @@
 #pragma once
 #include <string>
-void	start_CGI(std::string path, http_request request, int fd, Server serv);
+#include "webserv.hpp"
+#include "http_request.hpp"
+void	start_CGI(std::string path, http_request request, int fd, Server& serv);
