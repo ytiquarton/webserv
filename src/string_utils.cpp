@@ -1,6 +1,21 @@
 #include <string>
 #include <cctype>
 #include <sstream>
+#include <string>
+#include <vector>
+
+std::vector<char *> to_char_str_tab(std::vector<std::string> &input)
+{
+	std::vector<char *>	output;
+	std::vector<std::string>::iterator index = input.begin();
+	while (index != input.end())
+	{
+		output.push_back(const_cast<char *>((*index).c_str()));
+		index++;
+	}
+	output.push_back(0);
+	return (output);
+}
 
 std::string	to_lower(const std::string s)
 {

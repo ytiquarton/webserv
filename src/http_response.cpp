@@ -147,7 +147,7 @@ void	getURL(int fd, http_request message, Server& serv)
 		if (endsWith(message.url, ".py") && serv.config.getOneRoute(message.url).getCgi())
 		{
 			std::cout << "CGI!!!!\n";
-			start_CGI(return_path_routed(message.url, serv.config), message, fd);
+			start_CGI(return_path_routed(message.url, serv.config), message, fd, serv);
 		}
 		else
 		{

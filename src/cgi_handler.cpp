@@ -43,7 +43,7 @@ std::vector<std::string> &add_var(std::vector<std::string> &env, std::string var
 	return (env);
 }
 
-char	**get_CGI_env(http_request request, Server serv)
+std::vector<std::string> get_CGI_env(http_request request, Server serv)
 {
 	char **temp = serv.envp;
 	std::vector<std::string> newEnv;
@@ -66,6 +66,7 @@ char	**get_CGI_env(http_request request, Server serv)
 	if(request.headers.find("content-type")!=request.headers.end())
 		add_var(newEnv, "CONTENT_TYPE="+request.headers["content-type"]);
 	add_var(newEnv, "CONTENT_LENGTH="+ int_to_string(request.message_body.size()));
+	return (newEnv);
 }
 
 void	start_CGI(std::string path, http_request request, int fd, Server serv)
@@ -103,7 +104,13 @@ void	start_CGI(std::string path, http_request request, int fd, Server serv)
 	std::vector<char *> argv;
 	argv.push_back((char *)path.c_str());
 	argv.push_back(0);
-	execve(path.c_str(), &argv[0], get_CGI_env(request, serv));
+
+	std::vector<std::string> env_str = get_CGI_env(request, serv);
+	std::vector<char *>	env_char_ptr = to_char_str_tab(env_str);
+	
+	
+
+	execve(path.c_str(), &argv[0], &env_char_ptr[0]);
 	std::cerr << "Child fail?\n\n";
 	throw(std::runtime_error("CGI child fail!"));
 }
