@@ -10,6 +10,18 @@
 #include "parse_config.hpp"
 #include "string_utils.hpp"
 
+std::string	rebase_to_script_dir(std::string path)
+{
+	std::string::size_type pos = path.find_last_of('/');
+	if (pos == std::string::npos)
+		return (path);
+	if (chdir(path.substr(0, pos).c_str()) == -1)
+	{
+		throw(std::runtime_error("chdir failed!"));
+	}
+	return (path.substr(pos + 1));
+}
+
 std::vector<std::string> &add_var(std::vector<std::string> &env, std::string var)
 {
 	std::vector<std::string>::iterator it = env.begin();
@@ -86,12 +98,11 @@ void	start_CGI(std::string path, http_request request, int fd, Server serv)
 		throw(std::runtime_error("CGI child fail!"));
 	close(pipe_fds[0]);
 	close(fd);
+
+	path = rebase_to_script_dir(path);
 	std::vector<char *> argv;
 	argv.push_back((char *)path.c_str());
 	argv.push_back(0);
-
-	
-
 	execve(path.c_str(), &argv[0], get_CGI_env(request, serv));
 	std::cerr << "Child fail?\n\n";
 	throw(std::runtime_error("CGI child fail!"));

@@ -67,7 +67,6 @@ Route parse_route(std::string route, std::string block_route){
             // } else if (key == "cgi_dir") {
             //     route_ret.setCgiDir(val);
             // } else if (key == "return"){
-
         }
     }
     return route_ret;
