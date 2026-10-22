@@ -6,6 +6,7 @@
 #include <utility>
 #include "string_utils.hpp"
 #include <cstdlib>
+#include "utils.hpp"
 
 
 http_request::http_request(): incomplete(true)
@@ -113,7 +114,7 @@ void	parse_body(http_request &message, std::string &str_message)
 			throw(http_request::http_error("Invalid headers!", 400));
 		if((hasContentLength && message.headers["content-length"] != "0"))
 		{
-			size_t len = std::atoi(message.headers["content-length"].c_str());
+			size_t len = p_atoi(message.headers["content-length"].c_str());
 			if (str_message.size() < len)
 				throw(std::runtime_error("Incomplete!"));
 			message.message_body = str_message.substr(0, len);

@@ -106,7 +106,7 @@ ServerConfig parse_server(std::string conf_path){
 
             //parse port
             if (key == "port") {
-                    int port_val = std::atoi(val.c_str());
+                    int port_val = p_atoi(val.c_str());
                     if (port_val > 0 && port_val <= 65535) {
                         serv.setPort(port_val);
                     } else {
@@ -127,7 +127,7 @@ ServerConfig parse_server(std::string conf_path){
 
                 while (ss >> token) {
                     if (std::isdigit(token[0])) {
-                        codes.push_back(std::atoi(token.c_str()));
+                        codes.push_back(p_atoi(token.c_str()));
                     } else {
                         page_path = token;
                     }

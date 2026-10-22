@@ -28,3 +28,4 @@ void	sendDELETEstatus(int fd, int status, Server& serv);
 void	sendPOSTstatus(int fd, int status, Server& serv);
 void	sendError(int fd, int code, Server &serv);
 void	safe_send_Error(int fd, const http_request::http_error& error, Server &serv, bool connection_close = false);
+void	send_HTTP_Message(int fd, http_response response, Server& serv);

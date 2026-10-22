@@ -20,3 +20,4 @@ bool isDirectory(const std::string& path);
 std::string appendRoute(Route target_route, std::string path);
 std::string get_http_nb_phrase(int code);
 std::string read_file(std::string path);
+int p_atoi(const std::string& str);

@@ -487,7 +487,7 @@
             <div class="nav-links">
                 <a href="#features">Features</a>
                 <a href="#statuses">Statuses</a>
-                <a href="#contact">Test form</a>
+                <a href="#contact">POST / DELETE</a>
                 <a href="/cgi_test.html">CGI inspector</a>
             </div>
         </nav>
@@ -617,35 +617,43 @@ HTTP/1.1 <span class="code-status">200 OK</span>
 
         <section id="contact" class="container">
             <div class="section-heading">
-                <p class="eyebrow">Interactive example</p>
-                <h2>Try the form.</h2>
+                <p class="eyebrow">Live HTTP requests</p>
+                <h2>Test POST and DELETE.</h2>
                 <p>
-                    It currently runs in the browser and does not send a real POST. Remove the
-                    JavaScript handler later when your server is ready to process form data.
+                    POST a custom body to a file path, then try DELETE on the same path.
+                    Each tester shows the actual HTTP status, response headers, and response body.
                 </p>
             </div>
 
-            <form class="card" id="demoForm">
-                <div class="form-row">
-                    <label>
-                        Your name
-                        <input name="name" type="text" placeholder="Ada Lovelace" required>
-                    </label>
-                    <label>
-                        Favorite method
-                        <select name="method">
-                            <option>GET</option>
-                            <option>POST</option>
-                            <option>DELETE</option>
-                        </select>
-                    </label>
-                </div>
+            <form class="card" id="postForm">
+                <h3>POST a file</h3>
                 <label>
-                    Message
-                    <textarea name="message" placeholder="Your web server looks great!"></textarea>
+                    Target path
+                    <input name="path" type="text" value="/webserv-test.txt" required>
                 </label>
-                <button class="button primary" type="submit">Run form demo</button>
-                <p class="form-message" id="formMessage" role="status"></p>
+                <label>
+                    Content-Type
+                    <input name="contentType" type="text" value="text/plain; charset=utf-8" required>
+                </label>
+                <label>
+                    Request body
+                    <textarea name="body">Hello from the Webserv POST tester!
+This is the content of my test file.
+Unicode: café ☕</textarea>
+                </label>
+                <button class="button primary" type="submit">Send POST</button>
+                <p id="postStatus" role="status" aria-live="polite"></p>
+                <pre id="postResult" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:360px;overflow:auto" hidden></pre>
+            </form>
+            <form class="card" id="deleteForm" style="margin-top:1.5rem">
+                <h3>DELETE a file</h3>
+                <label>
+                    Target path
+                    <input name="path" type="text" value="/webserv-test.txt" required>
+                </label>
+                <button class="button primary" type="submit">Send DELETE</button>
+                <p id="deleteStatus" role="status" aria-live="polite"></p>
+                <pre id="deleteResult" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:360px;overflow:auto" hidden></pre>
             </form>
         </section>
     </main>
@@ -660,8 +668,6 @@ HTTP/1.1 <span class="code-status">200 OK</span>
     <script>
         const clock = document.getElementById("clock");
         const themeButton = document.getElementById("themeButton");
-        const demoForm = document.getElementById("demoForm");
-        const formMessage = document.getElementById("formMessage");
 
         function updateClock() {
             clock.textContent = new Date().toLocaleTimeString();
@@ -685,15 +691,64 @@ HTTP/1.1 <span class="code-status">200 OK</span>
             document.documentElement.style.setProperty("--accent", themes[themeIndex][2]);
         });
 
-        demoForm.addEventListener("submit", function (event) {
-            event.preventDefault();
-            const data = new FormData(demoForm);
-            const name = data.get("name");
-            const method = data.get("method");
-
-            formMessage.textContent = "Hello " + name + "! Your " + method + " demo was handled in the browser.";
-            formMessage.classList.add("visible");
-        });
+        function setupRequestTester(formId, method, statusId, resultId) {
+            const form = document.getElementById(formId);
+            const status = document.getElementById(statusId);
+            const result = document.getElementById(resultId);
+            form.addEventListener("submit", async function (event) {
+                event.preventDefault();
+                const button = form.querySelector("button[type=submit]");
+                const controller = new AbortController();
+                let timer;
+                result.hidden = true;
+                button.disabled = true;
+                try {
+                    const data = new FormData(form);
+                    const path = data.get("path").trim();
+                    if (!path.startsWith("/") || path.startsWith("//")) {
+                        throw new Error("Enter a local path starting with /.");
+                    }
+                    const url = new URL(path, window.location.href);
+                    if (url.origin !== window.location.origin) {
+                        throw new Error("The target must be on this server.");
+                    }
+                    const options = {
+                        method: method,
+                        signal: controller.signal,
+                        redirect: "manual",
+                        cache: "no-store"
+                    };
+                    if (method === "POST") {
+                        options.headers = { "Content-Type": data.get("contentType") };
+                        options.body = data.get("body");
+                    }
+                    status.textContent = "Sending " + method + " " + url.pathname + url.search + "…";
+                    timer = setTimeout(function () { controller.abort(); }, 15000);
+                    const response = await fetch(url, options);
+                    if (response.type === "opaqueredirect") {
+                        status.textContent = "Server returned a redirect; it was not followed.";
+                        return;
+                    }
+                    const body = await response.text();
+                    status.textContent = method + " " + url.pathname + url.search + " → HTTP "
+                        + response.status + " " + response.statusText;
+                    const headers = Array.from(response.headers, function (entry) {
+                        return entry[0] + ": " + entry[1];
+                    }).join("\n");
+                    result.textContent = headers + "\n\n" + (body || "(empty response body)");
+                    result.hidden = false;
+                } catch (error) {
+                    status.textContent = error.name === "AbortError"
+                        ? "Request timed out after 15 seconds."
+                        : "Request failed: " + error.message;
+                } finally {
+                    clearTimeout(timer);
+                    button.disabled = false;
+                }
+            });
+        }
+        setupRequestTester("postForm", "POST", "postStatus", "postResult");
+        setupRequestTester("deleteForm", "DELETE", "deleteStatus", "deleteResult");
     </script>
 </body>
 </html>

@@ -12,6 +12,7 @@
 #include "http_response.hpp"
 #include "string_utils.hpp"
 #include "cgi_handler.hpp"
+#include "http_handler.hpp"
 
 std::string	getDirHTML(std::string const path)
 {
@@ -37,12 +38,6 @@ std::string	getDirHTML(std::string const path)
 	return (output);
 }
 
-http_response	getRedirect(const std::string& newURL, int code = 301)
-{
-	http_response	output(code, "");
-	output.headers["Location"] = newURL;
-	return (output.setLength());
-}
 
 http_response getResponseGetURL(std::string requested_page, Server& serv)
 {
@@ -50,12 +45,7 @@ http_response getResponseGetURL(std::string requested_page, Server& serv)
 	std::cout<< "requested url: " << requested_page << std::endl;
 
     Route rte = serv.config.getOneRoute(requested_page);
-	if (rte.getAllowMethods().find("GET") == std::string::npos)
-		throw (http_request::http_error("Method not allowed!", 405));
 
-    std::pair<int, std::string> redir = rte.getRedir();
-    if (redir.first != 0)
-		return (getRedirect(redir.second, redir.first));
 
 	std::string file_to_serve = return_path_routed(requested_page, serv.config);
 	if (isDirectory(file_to_serve))
