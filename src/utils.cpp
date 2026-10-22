@@ -80,3 +80,23 @@ bool existDir(const std::string& path) {
     }
     return (info.st_mode & S_IFDIR) != 0;
 }
+
+int p_atoi(const std::string& str){
+	int result = 0;
+	int sign = 1;
+	std::size_t i = 0;
+
+	if (str.empty())
+		return 0;
+	if (str[i] == '-' || str[i] == '+'){
+		if (str[i] == '-')
+			sign = -1;
+		i++;
+	}
+	for (; i < str.size(); i++){
+		if(str[i] < '0' || str[i] > '9')
+			break;
+		result = result * 10 + (str[i] - '0');
+	}
+	return result * sign;
+}
