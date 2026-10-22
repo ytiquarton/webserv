@@ -29,17 +29,19 @@
 <main>
   <a href="/HTML_Example.html">← Webserv playground</a>
   <h1>Send something to Python.</h1>
-  <p>Send a GET request and open the CGI inspector. Your fields appear in the
-     URL and in QUERY_STRING; this form sends no request body.</p>
+  <p>Choose GET or POST to open the CGI inspector with your custom data.</p>
+  <p>GET sends these fields in the URL, visible in QUERY_STRING, with empty stdin.
+     POST sends them as a URL-encoded request body, visible in stdin.</p>
   <form id="request-form" action="/cgi/cgy.py" method="get" accept-charset="UTF-8">
     <label for="name">Name</label>
     <input id="name" name="name" value="Marc" spellcheck="false">
     <input type="hidden" name="source" value="cgi-test">
     <label for="message">Custom message</label>
     <textarea id="message" name="message" spellcheck="false">Hello from the Webserv playground!
-This custom string should appear in CGI QUERY_STRING.
+Look for this message in QUERY_STRING with GET, or stdin with POST.
 Unicode works too: café ☕</textarea>
-    <button id="send" type="submit">Send to CGI →</button>
+    <button type="submit" formmethod="get">Send GET →</button>
+    <button type="submit" formmethod="post" formenctype="application/x-www-form-urlencoded">Send POST →</button>
   </form>
 </main>
 </body>

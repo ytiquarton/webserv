@@ -1,6 +1,7 @@
 #include "http_request.hpp"
 #include "http_response.hpp"
 #include <fcntl.h>
+#include "cgi_handler.hpp"
 
 std::string get_target_path(std::string url, Server serv){
 	std::string path = return_path_routed(url, serv.config);
@@ -17,7 +18,7 @@ bool 	is_allowed(std::string allowed, std::string method){
 		return false;
 	if (pos == 0 && (allowed[pos + method.length()] == ' ' || allowed[pos + method.length()] == '\t'))
 		return true;
-	else if (allowed[pos - 1] == ' ' || allowed[pos - 1] == '\t'
+	else if ((allowed[pos - 1] == ' ' || allowed[pos - 1] == '\t')
 		&& (allowed[pos + method.length()] == ' ' || allowed[pos + method.length()] == '\t'))
 		return true;
 	return false;
@@ -31,7 +32,7 @@ int	create_file(std::string url, std::string content, Server& serv)
 	struct stat info;
 	bool existed;
 	int fd;
-	size_t written;
+	size_t written = 0;
 
 	if (!is_allowed(route.getAllowMethods(), "POST"))
 		throw (http_request::http_error("Method is not allowed", 405));
@@ -71,15 +72,11 @@ void	delete_file(std::string url, Server& serv)
 
 void	handle_http_message(int fd, http_request message, Server& serv)
 {
+	Route	rte;
 	try
 	{
-		if (message.method == http_request::GET)
-		{
-			getURL(fd, message, serv);
-			return;
-		}
 		try{
-			serv.config.getOneRoute(message.url);
+			rte = serv.config.getOneRoute(message.url);
 			get_target_path(message.url, serv);
 		}
 		catch(const std::runtime_error&){
@@ -88,10 +85,18 @@ void	handle_http_message(int fd, http_request message, Server& serv)
 		catch(const http_request::http_error&){
 			throw (http_request::http_error("Unable to root path", 404));
 		}
-		if (message.method == http_request::POST)
+		if (message.method == http_request::GET)
 		{
-			create_file(message.url, message.message_body, serv);
-			sendPOSTstatus(fd, 0, serv);
+			getURL(fd, message, serv);
+		}
+		else if (message.method == http_request::POST)
+		{
+			if (endsWith(message.url, ".py") && rte.getCgi())
+				start_CGI(return_path_routed(message.url, serv.config), message, fd, serv);
+			else{
+				create_file(message.url, message.message_body, serv);
+				sendPOSTstatus(fd, 0, serv);
+			}
 		}
 		else if (message.method == http_request::DELETE)
 		{

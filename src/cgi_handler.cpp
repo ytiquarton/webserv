@@ -79,6 +79,8 @@ std::vector<std::string> get_CGI_env(http_request request, Server serv)
 
 void	start_CGI(std::string path, http_request request, int fd, Server& serv)
 {
+	if (access(path.c_str(), X_OK) == -1)
+		throw(http_request::http_error("Inmpossible to access CGI file!", 500));
 	int	pipe_fds[2];
 	if (pipe(pipe_fds) == -1)
 		throw std::runtime_error("Error creating pipes!");
