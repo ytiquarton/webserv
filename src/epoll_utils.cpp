@@ -232,7 +232,7 @@ void	handle_event(epoll_event	*event, int	mysocket, int myepoll, std::map<int, c
 		std::cout << "Connection closed fd: " << event_connection.fd << std::endl;
 		close_and_remove_fd(serv.epoll.myepoll, event_connection.fd, serv.epoll.connections);
 	}
-	else if (event->events & EPOLLOUT)
+	else if ((event->events & EPOLLOUT) && event_connection.type == connection::WriteFD)
 	{
 		if (event_connection.index < event_connection.body.size())
 		{

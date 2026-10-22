@@ -83,24 +83,27 @@ http_response getResponseGetURL(std::string requested_page, Server& serv)
 	return (output.setLength());
 }
 
-void	send_to_fd(std::string str, int fd)
+void	send_to_fd(std::string str, int fd, Server& serv)
 {
-	std::size_t	totalSent = 0;
-	while( totalSent < str.size())
+	int	dup_fd = dup(fd);
+	if (dup_fd == -1)
+		throw(http_request::http_error("send error!", 500));
+	connection&	cgi_connection = serv.epoll.connections[dup_fd];
+	cgi_connection.type = connection::WriteFD;
+	cgi_connection.body = str;
+	cgi_connection.fd = dup_fd;
+	try
 	{
-		ssize_t sent = send(
-			fd,
-			str.data() + totalSent,
-			str.size() - totalSent,
-			0
-		);
-		if ( sent <= 0)
-			break;
-		totalSent += static_cast<std::size_t>(sent);
+		add_connection_to_epoll(dup_fd, &cgi_connection, serv.epoll.myepoll, EPOLLOUT);
+	}
+	catch(...)
+	{
+		serv.epoll.connections.erase(fd);
+		throw(http_request::http_error("send error!", 500));
 	}
 }
 
-void	send_HTTP_Message(int fd, http_response response)
+void	send_HTTP_Message(int fd, http_response response, Server& serv)
 {
 	std::ostringstream ss;
 	ss << "HTTP/1.1 "<< response.code <<" " <<  get_http_nb_phrase(response.code) << "\r\n";
@@ -112,7 +115,7 @@ void	send_HTTP_Message(int fd, http_response response)
 	ss << response.body;
 
 	//std::cout << "Sent response:\n" << ss.str() << std::endl;
-	send_to_fd(ss.str(), fd);
+	send_to_fd(ss.str(), fd, serv);
 }
 
 void	safe_send_Error(int fd, const http_request::http_error& error, Server &serv, bool connection_close)
@@ -131,7 +134,7 @@ void	safe_send_Error(int fd, const http_request::http_error& error, Server &serv
 			if (error_page_path != "")
 				response.body = read_file(serv.config.getErrorPagePath(code));
 			response.setLength();
-			send_HTTP_Message(fd, response);
+			send_HTTP_Message(fd, response, serv);
 			return;
 		}
 		catch(const http_request::http_error& e)
@@ -140,7 +143,7 @@ void	safe_send_Error(int fd, const http_request::http_error& error, Server &serv
 		}
 		index ++;
 	}
-	send_HTTP_Message(fd, response);
+	send_HTTP_Message(fd, response, serv);
 }
 
 void	getURL(int fd, http_request message, Server& serv)
@@ -153,23 +156,23 @@ void	getURL(int fd, http_request message, Server& serv)
 	else
 	{
 		std::cout << "Boring usual request... \n";
-		send_HTTP_Message(fd, getResponseGetURL(message.url, serv));
+		send_HTTP_Message(fd, getResponseGetURL(message.url, serv), serv);
 	}
 }
 
 
 
-void	sendPOSTstatus(int fd, int status)
+void	sendPOSTstatus(int fd, int status, Server& serv)
 {
 	if (status == 0)
-		send_HTTP_Message(fd, http_response(201, ""));
+		send_HTTP_Message(fd, http_response(201, ""), serv);
 	else
 		throw(std::runtime_error("status not handled!"));
 }
-void	sendDELETEstatus(int fd, int status)
+void	sendDELETEstatus(int fd, int status, Server& serv)
 {
 	if (status == 0)
-		send_HTTP_Message(fd, http_response(204, ""));
+		send_HTTP_Message(fd, http_response(204, ""), serv);
 	else
 		throw(std::runtime_error("status not handled!"));
 }

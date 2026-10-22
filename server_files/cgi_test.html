@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Send a CGI request · Webserv</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #07111f; color: #ecf5ff;
+           font: 16px/1.6 system-ui, sans-serif; }
+    main { max-width: 1050px; margin: auto; padding: 40px 24px; }
+    a { color: #67e8f9; }
+    h1 { font-size: clamp(30px, 5vw, 44px); margin-bottom: 8px; }
+    p { color: #a8bad1; }
+    form { background: #0f1d30; border: 1px solid #293c55;
+           border-radius: 16px; padding: 24px; margin: 28px 0; }
+    label { display: block; font-weight: 600; margin-top: 16px; }
+    input, textarea { display: block; width: 100%; padding: 12px; margin-top: 8px;
+                      border: 1px solid #435572; border-radius: 8px;
+                      color: #ecf5ff; background: #07111f; font: inherit; }
+    textarea { min-height: 150px; resize: vertical; font-family: monospace; }
+    button { border: 0; border-radius: 8px; padding: 12px 22px; margin-top: 20px;
+             background: #67e8f9; color: #07111f; font: 700 16px system-ui;
+             cursor: pointer; }
+    :focus-visible { outline: 3px solid #a78bfa; outline-offset: 3px; }
+  </style>
+</head>
+<body>
+<main>
+  <a href="/HTML_Example.html">← Webserv playground</a>
+  <h1>Send something to Python.</h1>
+  <p>Send a GET request and open the CGI inspector. Your fields appear in the
+     URL and in QUERY_STRING; this form sends no request body.</p>
+  <form id="request-form" action="/cgi/cgy.py" method="get" accept-charset="UTF-8">
+    <label for="name">Name</label>
+    <input id="name" name="name" value="Marc" spellcheck="false">
+    <input type="hidden" name="source" value="cgi-test">
+    <label for="message">Custom message</label>
+    <textarea id="message" name="message" spellcheck="false">Hello from the Webserv playground!
+This custom string should appear in CGI QUERY_STRING.
+Unicode works too: café ☕</textarea>
+    <button id="send" type="submit">Send to CGI →</button>
+  </form>
+</main>
+</body>
+</html>

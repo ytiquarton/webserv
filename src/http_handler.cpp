@@ -24,12 +24,12 @@ void	handle_http_message(int fd, http_request message, Server& serv)
 		else if (message.method == http_request::POST)
 		{
 			create_file(message.url, message.message_body);
-			sendPOSTstatus(fd, 0);
+			sendPOSTstatus(fd, 0, serv);
 		}
 		else if (message.method == http_request::DELETE)
 		{
 			delete_file(message.url);
-			sendDELETEstatus(fd, 0);
+			sendDELETEstatus(fd, 0, serv);
 		}
 		else
 			throw(std::runtime_error("Method not implemented yet!"));
