@@ -34,8 +34,10 @@ bool 	is_allowed(std::string allowed, std::string method)
 
 	if (pos == std::string::npos)
 		return false;
-	if (pos == 0 && (allowed[pos + method.length()] == ' ' || allowed[pos + method.length()] == '\t'))
-		return true;
+	if (pos == 0) {
+		if (allowed[pos + method.length()] == ' ' || allowed[pos + method.length()] == '\t')
+			return true;
+	}
 	else if ((allowed[pos - 1] == ' ' || allowed[pos - 1] == '\t')
 		&& (allowed[pos + method.length()] == ' ' || allowed[pos + method.length()] == '\t' || allowed[pos + method.length()] == ';'))
 		return true;

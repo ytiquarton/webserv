@@ -100,3 +100,23 @@ int p_atoi(const std::string& str){
 	}
 	return result * sign;
 }
+
+long long p_atoll(const std::string& str){
+	long long result = 0;
+	int sign = 1;
+	std::size_t i = 0;
+
+	if (str.empty())
+		return 0;
+	if (str[i] == '-' || str[i] == '+'){
+		if (str[i] == '-')
+			sign = -1;
+		i++;
+	}
+	for (; i < str.size(); i++){
+		if(str[i] < '0' || str[i] > '9')
+			break;
+		result = result * 10 + (str[i] - '0');
+	}
+	return result * sign;
+}

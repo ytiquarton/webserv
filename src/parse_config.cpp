@@ -152,7 +152,7 @@ ServerConfig parse_server(std::string conf_path){
                     continue;
                 }
 
-                long long num = std::atoll(num_str.c_str());
+                long long num = p_atoll(num_str.c_str());
                 long long bytes = num;
 
                 if (unit == 'K' || unit == 'k') bytes = num * 1024;
