@@ -96,11 +96,11 @@ void	handle_http_message(int fd, http_request message, Server& serv)
 			rte = serv.config.getOneRoute(message.url);
 			path_r = get_target_path(message.url, serv);
 		}
-		catch(const std::runtime_error&){
-			throw (http_request::http_error("Unable to get route", 404));
-		}
 		catch(const http_request::http_error&){
 			throw (http_request::http_error("Unable to root path", 404));
+		}
+		catch(const std::runtime_error&){
+			throw (http_request::http_error("Unable to get route", 404));
 		}
 		if (!is_allowed(rte.getAllowMethods(),  http_request::r_methods_map.find(message.method)->second))
 			throw (http_request::http_error("Method is not allowed", 405));
